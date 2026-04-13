@@ -1,37 +1,76 @@
-# Bergen Smart-Rain Hub: 
-### IoT-løsning for urban energiberegning.
+# Bergen Smart Rain Hub
+### Regnvannsoppsamling som beredskapsressurs
 
-Dette prosjektet er lagd for å samle inn og analysere data fra regnsensorer i Bergen, for å gi en oversikt over nedbørsmønstre og gi en forståelse av hvordan regn kan påvirke energiforbruket i byen, og hvordan nedbør kan utnyttes som en ressurs for å redusere energiforbruket til næringsbygg og boliger.
+Bergen er en av Europas mest nedbørsrike byer, med over 2 200 mm nedbør i året. Bergen Smart Rain Hub analyserer ekte nedbørsdata for å kartlegge potensialet for regnvannsoppsamling som **beredskapsressurs** — for enkeltpersoner, lokalsamfunn og kommunale beredskapsplaner.
 
----
-### Målsetning:
-- Samle inn data om nedbør i Bergen ved hjelp av regnsensorer koblet til Raspberry Pi Pico.
-- Analysere dataene for å beregne potensiell energi som kan utnyttes fra regnvann (E = mgh).
-- Visualisere nedbørsmønstre og energipotensialet
-- Gi innsikt i hvordan regn kan påvirke energiforbruket i urbane områder og hvordan det kan utnyttes for å redusere energiforbruket i næringsbygg og boliger
+Ved vannkrise, forurensning eller infrastruktursvikt kan oppsamlet regnvann utgjøre forskjellen mellom trygg vannforsyning og krise. Dette verktøyet viser hvor mye vann som kan samles opp fra bygningstak, og hvor lenge det rekker.
 
 ---
 
-### Projsektoversikt:
+### Hovedfunksjoner
+
+- **Beredskapssimulering** — Simuler tanknivå dag for dag gjennom et helt år med ekte nedbørsdata. Se når tanken fylles opp, når den tømmes, og når vannforsyningen er kritisk.
+- **Tørkeperiode-analyse** — Identifiser de mest sårbare periodene der nedbøren uteblir og man er avhengig av lagret vann.
+- **Skalerbare scenarier** — Modeller alt fra én husholdning til et helt nabolag med justerbare parametere for takareal, tankkapasitet, befolkning og forbruksnivå.
+- **WHO-standarder** — Beregninger basert på Verdens helseorganisasjons minimumsforbruk ved krise (13 liter/person/dag).
+- **Energipotensial** — Sekundær analyse av teoretisk energi fra vannets fall (E = mgh), med CO₂-besparelser og praktiske sammenligninger.
+
+---
+
+### Datakilder
+
+Nedbørsdata hentes fra **Meteorologisk Institutt** sitt [Frost API](https://frost.met.no/), med målestasjon SN50540 (Bergen Florida). Systemet henter og lagrer det siste året med daglige nedbørsmålinger.
+
+---
+
+### Prosjektstruktur
+
 ```
-bergen-rain-hub/
+bergen-smart-rain-hub/
 │
-├── hardware/                # Programvare som kjører på Raspberry Pi Pico
-│   ├── main.py              # Hovedprogrammet som starter når Pico får strøm
-│   ├── boot.py              # Oppsett av Wi-Fi og nettverkstilkobling
-│   └── sensors.py           # Logikk for å lese av regnsensor og temperatur
+├── backend/
+│   ├── frost_client.py      # Henter nedbørsdata fra Frost API (1 år)
+│   ├── analysis.py          # Beredskapsberegninger, vannoppsamling, energipotensial
+│   ├── database.py          # SQLite-lagring av observasjoner
+│   └── pipeline.py          # Orkestrering: hent data → lagre i database
 │
-├── backend/                 # Programvare som kjører på server
-│   ├── frost_client.py      # Skriptet som henter data fra Frost API
-│   ├── analysis.py          # Funksjoner for energiutregning (E = mgh)
-│   └── database.py          # Lagring av data
+├── frontend/
+│   ├── app.py               # Hovedside — oversikt og nøkkeltall
+│   └── pages/
+│       ├── 1_vannberedskap.py    # Beredskapssimulering og tørkeanalyse
+│       └── 2_energipotensial.py  # Energiberegning (sekundær)
 │
-├── docs/                    # Dokumentasjon
-│   ├── circuit_diagram.png  # Bilde/skisse av koblingsskjemaet for regnsensoren
-│   └── hardware_list.md     # Liste over komponenter
+├── data/
+│   └── rain.db              # SQLite-database med nedbørsdata
 │
+└── docs/                    # Dokumentasjon
 ```
+
 ---
-### Current Tech-Stack
-**Språk:** Python
-**API:** Frost_API
+
+### Teknisk stack
+
+- **Språk:** Python
+- **Frontend:** Streamlit
+- **API:** Frost API (Meteorologisk Institutt)
+- **Database:** SQLite
+- **Analyse:** pandas, numpy
+- **Visualisering:** Altair
+
+---
+
+### Eksempeldata fra Bergen (siste år)
+
+| Nøkkeltall | Verdi |
+|---|---|
+| Total nedbør | 2 213 mm |
+| Lengste tørkeperiode | 25 dager |
+| Vann fra ett hustak (150 m²) | 282 000 liter |
+| Beredskapsforsyning (1 person) | 21 700 dager |
+| Beredskapsforsyning (4 pers. familie) | 5 400 dager |
+
+---
+
+### Lisens
+
+Apache 2.0 — se [LICENSE](LICENSE).
