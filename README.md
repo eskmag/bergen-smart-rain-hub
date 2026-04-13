@@ -7,6 +7,7 @@ Dette prosjektet er lagd for å samle inn og analysere data fra regnsensorer i B
 ### Målsetning:
 - Samle inn data om nedbør i Bergen ved hjelp av regnsensorer koblet til Raspberry Pi Pico.
 - Analysere dataene for å beregne potensiell energi som kan utnyttes fra regnvann (E = mgh).
+- Visualisere nedbørsmønstre og energipotensialet
 - Gi innsikt i hvordan regn kan påvirke energiforbruket i urbane områder og hvordan det kan utnyttes for å redusere energiforbruket i næringsbygg og boliger
 
 ---
@@ -32,5 +33,5 @@ bergen-rain-hub/
 ```
 ---
 ### Current Tech-Stack
-- Python
-- Frost_API
+**Språk:** Python
+**API:** Frost_API
