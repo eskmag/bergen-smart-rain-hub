@@ -35,12 +35,95 @@ class Building:
     height_m: float = 5.0
 
 
-@dataclass
-class Community:
-    name: str
-    buildings: list = field(default_factory=list)
-    population: int = 0
-    tank_capacity_liters: float = 0.0
+# Norwegian building presets: (label, roof_area_m2, default_people, height_m, description)
+BUILDING_PRESETS = {
+    "enebolig": {
+        "label": "Enebolig",
+        "roof_area_m2": 120,
+        "default_people": 4,
+        "height_m": 6,
+        "description": "Frittstående hus med eget tak, typisk 100–150 m².",
+    },
+    "rekkehus": {
+        "label": "Rekkehus",
+        "roof_area_m2": 80,
+        "default_people": 3,
+        "height_m": 6,
+        "description": "Rekke- eller kjedehus, din andel av taket er ca. 70–100 m².",
+    },
+    "leilighet_liten": {
+        "label": "Leilighet (liten blokk)",
+        "roof_area_m2": 300,
+        "default_people": 20,
+        "height_m": 12,
+        "description": "Liten boligblokk med 6–10 leiligheter, felles tak ca. 250–400 m².",
+    },
+    "leilighet_stor": {
+        "label": "Leilighet (stor blokk)",
+        "roof_area_m2": 800,
+        "default_people": 60,
+        "height_m": 20,
+        "description": "Stor boligblokk med 20+ leiligheter, felles tak ca. 600–1000 m².",
+    },
+    "barneskole": {
+        "label": "Barneskole",
+        "roof_area_m2": 800,
+        "default_people": 200,
+        "height_m": 8,
+        "description": "Typisk barneskole med 150–300 elever og ansatte.",
+    },
+    "kontorbygg": {
+        "label": "Kontorbygg",
+        "roof_area_m2": 1200,
+        "default_people": 150,
+        "height_m": 15,
+        "description": "Mellomstort kontorbygg med 100–200 ansatte.",
+    },
+    "idrettshall": {
+        "label": "Idrettshall / gymsal",
+        "roof_area_m2": 2000,
+        "default_people": 300,
+        "height_m": 10,
+        "description": "Stor idrettshall — stort takflate gir mye oppsamling.",
+    },
+    "kjopesenter": {
+        "label": "Kjøpesenter",
+        "roof_area_m2": 3000,
+        "default_people": 500,
+        "height_m": 12,
+        "description": "Kjøpesenter eller stormarked med svært stor takflate.",
+    },
+}
+
+
+def recommend_tank_size(annual_liters, population, target_dry_days=30):
+    """Recommend a tank size that covers a target number of dry days
+    at survival consumption level. Returns a list of options."""
+    daily_need = WATER_NEEDS["survival_total"] * population
+    base_tank = daily_need * target_dry_days
+
+    options = [
+        {
+            "label": "Minimum",
+            "liters": round(daily_need * 7 / 100) * 100,
+            "days_covered": 7,
+            "description": "Dekker 1 uke uten nedbør",
+        },
+        {
+            "label": "Anbefalt",
+            "liters": round(base_tank / 100) * 100,
+            "days_covered": target_dry_days,
+            "description": f"Dekker {target_dry_days} dager uten nedbør",
+        },
+        {
+            "label": "Robust",
+            "liters": round(daily_need * 60 / 100) * 100,
+            "days_covered": 60,
+            "description": "Dekker 2 måneder uten nedbør",
+        },
+    ]
+
+    return options
 
 
 # ============================================================
