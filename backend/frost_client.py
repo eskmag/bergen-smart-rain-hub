@@ -1,19 +1,20 @@
 import requests
 import pandas as pd
-import os
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
+
+from backend.config import (
+    FROST_CLIENT_ID, FROST_CLIENT_SECRET, FROST_API_ENDPOINT,
+    DEFAULT_STATION_ID, default_date_range, logger,
+)
 
 
-def get_rainfall_data(station_id="SN50540", days=365):
-    load_dotenv()
-    client_id = os.getenv("CLIENT_ID")
-    client_secret = os.getenv("CLIENT_SECRET")
-    endpoint = os.getenv("FROST_API_ENDPOINT")
+def get_rainfall_data(station_id=None, days=365):
+    station_id = station_id or DEFAULT_STATION_ID
+    start_date, end_date = default_date_range(days)
+    time_period = f"{start_date}/{end_date}"
 
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=days)
-    time_period = f"{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}"
+    if not FROST_API_ENDPOINT or not FROST_CLIENT_ID:
+        logger.error("Frost API-konfigurasjon mangler. Sjekk .env-filen (CLIENT_ID, FROST_API_ENDPOINT).")
+        return pd.DataFrame(columns=["station_id", "date", "precipitation_mm"])
 
     params = {
         "sources": station_id,
@@ -22,10 +23,14 @@ def get_rainfall_data(station_id="SN50540", days=365):
     }
 
     try:
-        r = requests.get(endpoint, params=params, auth=(client_id, client_secret))
+        r = requests.get(
+            FROST_API_ENDPOINT, params=params,
+            auth=(FROST_CLIENT_ID, FROST_CLIENT_SECRET),
+            timeout=30,
+        )
         r.raise_for_status()
     except requests.RequestException as e:
-        print(f"Feil ved henting av data fra Frost API: {e}")
+        logger.warning("Feil ved henting av data fra Frost API: %s", e)
         return pd.DataFrame(columns=["station_id", "date", "precipitation_mm"])
 
     json_data = r.json()
@@ -42,7 +47,7 @@ def get_rainfall_data(station_id="SN50540", days=365):
         })
 
     df = pd.DataFrame(rows)
-    print(f"Hentet {len(df)} dager med nedbørsdata for {station_id}")
+    logger.info("Hentet %d dager med nedbørsdata for %s", len(df), station_id)
     return df
 
 

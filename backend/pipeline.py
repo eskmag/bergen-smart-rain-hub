@@ -1,20 +1,23 @@
+from backend.config import DB_PATH, logger
 from backend.database import init_db, store_observations
 from backend.frost_client import get_rainfall_data
 
 
-def run_pipeline(days=365, db_path="data/rain.db"):
+def run_pipeline(days=365, db_path=None):
+    db_path = db_path or DB_PATH
     conn = init_db(db_path)
-    df = get_rainfall_data(days=days)
+    try:
+        df = get_rainfall_data(days=days)
 
-    if df.empty:
-        print("Ingen data hentet fra Frost API.")
-        conn.close()
+        if df.empty:
+            logger.warning("Ingen data hentet fra Frost API.")
+            return df
+
+        store_observations(conn, df)
+        logger.info("Lagret %d observasjoner i %s", len(df), db_path)
         return df
-
-    store_observations(conn, df)
-    print(f"Lagret {len(df)} observasjoner i {db_path}")
-    conn.close()
-    return df
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":

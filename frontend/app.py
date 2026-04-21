@@ -1,10 +1,11 @@
 import sys
-import os
+from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
 import altair as alt
+from backend.config import DB_PATH, default_date_range
 from backend.database import init_db, get_observations
 from backend.analysis import (
     water_collected, emergency_supply_days,
@@ -19,10 +20,15 @@ st.markdown(
     "og hvor lenge det rekker i en krisesituasjon."
 )
 
-# Load data
-conn = init_db()
-df = get_observations(conn, "2025-04-13", "2026-04-12")
-conn.close()
+@st.cache_data(ttl=3600)
+def load_data():
+    start, end = default_date_range()
+    conn = init_db(DB_PATH)
+    data = get_observations(conn, start, end)
+    conn.close()
+    return data
+
+df = load_data()
 
 if df.empty:
     st.warning("Ingen data funnet. Kjør `python -m backend.pipeline` for å hente data.")

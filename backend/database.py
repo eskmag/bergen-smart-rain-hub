@@ -1,12 +1,15 @@
 import sqlite3
-import os
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 
+from backend.config import DB_PATH
 
-def init_db(db_path="data/rain.db"):
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+
+def init_db(db_path=None):
+    db_path = db_path or DB_PATH
+    Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS observations (
