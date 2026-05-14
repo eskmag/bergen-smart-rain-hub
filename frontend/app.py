@@ -12,6 +12,10 @@ from backend.analysis import (
     storage_simulation, recommend_tank_size,
     find_dry_spells, Building, BUILDING_PRESETS, WATER_NEEDS,
 )
+from backend.scales import (
+    SCALES, SCALE_PRESETS, INFRASTRUCTURE_FACILITIES,
+    aggregate_neighbourhood,
+)
 
 st.set_page_config(page_title="Bergen Smart Rain Hub", page_icon="🌧️", layout="wide")
 st.title("Bergen Smart Rain Hub")
@@ -35,34 +39,79 @@ if df.empty:
     st.stop()
 
 # ============================================================
-# Step 1: Building selector
+# Step 1: Scale selector
 # ============================================================
-st.subheader("1. Velg bygningstype")
+st.subheader("1. Velg skala")
 
-preset_keys = list(BUILDING_PRESETS.keys())
-preset_labels = [BUILDING_PRESETS[k]["label"] for k in preset_keys]
-
-selected_label = st.radio(
-    "Hva slags bygg har du?",
-    preset_labels,
+scale_keys = list(SCALES.keys())
+scale_labels = [SCALES[k].label for k in scale_keys]
+default_scale_idx = scale_keys.index(st.session_state.get("scale", "household"))
+selected_scale_label = st.radio(
+    "Hvilken skala vurderer du?",
+    scale_labels,
+    index=default_scale_idx,
     horizontal=True,
     label_visibility="collapsed",
 )
+scale_key = scale_keys[scale_labels.index(selected_scale_label)]
+st.session_state["scale"] = scale_key
+scale_spec = SCALES[scale_key]
+st.caption(scale_spec.description)
 
-selected_key = preset_keys[preset_labels.index(selected_label)]
-preset = BUILDING_PRESETS[selected_key]
+# ============================================================
+# Step 2: Building / facility selector (branches on scale)
+# ============================================================
+st.subheader("2. Velg bygningstype")
+
+if scale_key == "infrastructure":
+    facility_keys = list(INFRASTRUCTURE_FACILITIES.keys())
+    facility_labels = [INFRASTRUCTURE_FACILITIES[k]["label"] for k in facility_keys]
+    selected_label = st.radio(
+        "Hva slags anlegg?",
+        facility_labels,
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+    selected_key = facility_keys[facility_labels.index(selected_label)]
+    preset = INFRASTRUCTURE_FACILITIES[selected_key]
+    building_count = 1
+else:
+    preset_keys_for_scale = SCALE_PRESETS[scale_key]
+    preset_labels = [BUILDING_PRESETS[k]["label"] for k in preset_keys_for_scale]
+    selected_label = st.radio(
+        "Hva slags bygg har du?",
+        preset_labels,
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+    selected_key = preset_keys_for_scale[preset_labels.index(selected_label)]
+    base_preset = BUILDING_PRESETS[selected_key]
+
+    if scale_key == "neighbourhood":
+        building_count = st.slider(
+            "Antall bygg i nabolaget",
+            min_value=2,
+            max_value=20,
+            value=10,
+            help="Antall bygg av samme type som mater felles tank. "
+                 "Bergens typiske borettslag-kluster er 5–20 bygg.",
+        )
+        preset = aggregate_neighbourhood(base_preset, building_count)
+    else:
+        preset = base_preset
+        building_count = 1
 
 st.caption(preset["description"])
 
 # ============================================================
-# Step 2: People
+# Step 3: People
 # ============================================================
-st.subheader("2. Hvor mange personer?")
+st.subheader("3. Hvor mange personer?")
 
 people = st.slider(
     "Antall personer som skal forsynes med vann",
     min_value=1,
-    max_value=1000,
+    max_value=5000,
     value=preset["default_people"],
     help="Velg antall personer bygget skal forsyne. "
          "For en husholdning er dette familien din. "
@@ -76,6 +125,12 @@ total_rain = df["precipitation_mm"].sum()
 roof_area = preset["roof_area_m2"]
 annual_liters = water_collected(total_rain, roof_area)
 supply_days = emergency_supply_days(annual_liters, people, "survival_total")
+
+# Persist effective scenario to session_state so downstream pages can prefill.
+st.session_state["roof_area_m2"] = roof_area
+st.session_state["population"] = people
+st.session_state["building_label"] = preset["label"]
+st.session_state["building_count"] = building_count
 
 st.markdown("---")
 
@@ -132,11 +187,21 @@ c4.metric(
     help="Antall dager hele årets oppsamling kan dekke vannbehovet.",
 )
 
+# Scale-aware nudge to the energy modules (Phase 5)
+if scale_key in ("neighbourhood", "infrastructure"):
+    st.info(
+        "💡 **For denne skalaen finnes det også energi- og lønnsomhetsmoduler.** "
+        "Tanken kan brukes til passiv kjøling om sommeren og som varmekilde "
+        "for eksisterende bergvarmeanlegg. Se sidene **5 Passiv kjøling**, "
+        "**6 Varmesystem** og **7 Lønnsomhet** i menyen til venstre. "
+        "Beredskapsvolumet er alltid beskyttet."
+    )
+
 # ============================================================
 # Tank recommendation
 # ============================================================
 st.markdown("---")
-st.subheader("3. Anbefalt tankstørrelse")
+st.subheader("4. Anbefalt tankstørrelse")
 st.markdown(
     "For å faktisk kunne lagre regnvann trenger du en tank. "
     "Størrelsen avhenger av hvor mange dager uten regn du vil være forberedt på. "
@@ -164,12 +229,13 @@ for i, opt in enumerate(tank_options):
 # Simulation with recommended tank
 # ============================================================
 recommended_tank = tank_options[1]["liters"]  # "Anbefalt"
+st.session_state["tank_liters"] = recommended_tank
 building = Building(preset["label"], roof_area_m2=roof_area, height_m=preset["height_m"])
 
 sim = storage_simulation(df, [building], recommended_tank, people, "survival_total")
 
 st.markdown("---")
-st.subheader("4. Simulering gjennom året")
+st.subheader("5. Simulering gjennom året")
 st.markdown(
     f"Grafen under viser hvordan tanknivået ville sett ut det siste året med "
     f"den anbefalte tanken ({recommended_tank:,.0f} L). "
@@ -214,7 +280,7 @@ else:
 # Dry spells
 # ============================================================
 st.markdown("---")
-st.subheader("5. Sårbare perioder")
+st.subheader("6. Sårbare perioder")
 st.markdown(
     "Tabellen viser perioder det siste året med tre eller flere dager nesten uten regn. "
     "Disse periodene er den største utfordringen for regnvannsbasert beredskap — "

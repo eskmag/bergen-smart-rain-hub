@@ -187,14 +187,27 @@ CATEGORY_LABELS = {
 OVERALL_SEVERITY_ORDER = {"Kritisk": 3, "Høy": 2, "Middels": 1}
 
 
+SCALE_RISK_TAG = {
+    "household": "household_scale",
+    "neighbourhood": "neighbourhood_scale",
+    "infrastructure": "infrastructure_scale",
+}
+
+
 def assess_scenario_risks(tank_liters, population, roof_area_m2,
-                          days_tank_empty=0, longest_dry_spell=0):
+                          days_tank_empty=0, longest_dry_spell=0,
+                          scale=None):
     """Evaluate which risks are most relevant for a given scenario.
 
     Returns a list of (Risk, relevance_score, reason) tuples sorted by
     relevance_score descending. Higher score = more relevant to this scenario.
+
+    If `scale` is provided ("household", "neighbourhood", "infrastructure"),
+    risks tagged with the matching scale are boosted explicitly — this is
+    more reliable than inferring scale from population or roof_area.
     """
     results = []
+    explicit_scale_tag = SCALE_RISK_TAG.get(scale) if scale else None
 
     for risk in RISKS:
         score = OVERALL_SEVERITY_ORDER.get(risk.overall, 1)
@@ -228,6 +241,10 @@ def assess_scenario_risks(tank_liters, population, roof_area_m2,
         if "household_scale" in risk.relevance_tags and population <= 10:
             score += 1
             reasons.append("Husholdningsskala")
+
+        if explicit_scale_tag and explicit_scale_tag in risk.relevance_tags:
+            score += 2
+            reasons.append(f"Relevant for valgt skala ({scale})")
 
         if days_tank_empty > 0 and risk.name.startswith("Langvarig"):
             score += 2

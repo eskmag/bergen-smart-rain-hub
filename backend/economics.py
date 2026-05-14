@@ -46,6 +46,22 @@ OPERATING_CATEGORIES = [
 ]
 
 
+SCALE_DEFAULT_ESTIMATE_INDEX = {
+    "household": 0,          # Enebolig / husholdning
+    "neighbourhood": 2,      # Nabolag (500 beboere)
+    "infrastructure": 4,     # Sykehusavdeling (upper bound of infrastructure)
+}
+
+
+def estimate_for_scale(scale):
+    """Return the default cost-estimate tier for a given scale key.
+
+    Raises KeyError if `scale` is unknown. For finer picks within a scale,
+    use `find_best_estimate(population)` instead.
+    """
+    return COST_ESTIMATES[SCALE_DEFAULT_ESTIMATE_INDEX[scale]]
+
+
 def find_best_estimate(population):
     """Find the cost estimate tier that best matches the given population."""
     for est in COST_ESTIMATES:

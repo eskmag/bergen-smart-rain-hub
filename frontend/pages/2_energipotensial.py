@@ -115,9 +115,16 @@ ss.columns = ["Sesong", "Total (mm)", "Snitt per dag (mm)", "Antall dager"]
 st.dataframe(ss, use_container_width=True, hide_index=True)
 
 st.markdown("---")
+st.info(
+    "📘 **Mer praktisk energiutnyttelse:** For borettslag, skoler og kritisk "
+    "infrastruktur kan regnvannstanken brukes som varmekilde for et eksisterende "
+    "bergvarmeanlegg (vann/vann-varmepumpe). Tanken på 7–11 °C er ofte varmere enn "
+    "bergbrønnen i sommer- og høsthalvåret, og gir betydelig høyere COP. "
+    "Se side **6 Varmesystem** for full simulering."
+)
 st.caption(
-    "Energiberegningen viser ren gravitasjonsenergi (E = mgh). "
-    "I praksis kan mer avanserte systemer som trykkgjenvinning i rør, "
-    "mikroturbiner, og regnvanns-varmepumper (regnvann på 5–10°C som varmekilde) "
-    "utnytte energien mer effektivt enn det denne enkle beregningen viser."
+    "Energiberegningen på denne siden viser ren gravitasjonsenergi (E = mgh) — "
+    "et teoretisk maksimum. I praksis er regnvanns-varmepumper (regnvann som "
+    "varmekilde) og passiv kjøling om sommeren langt mer verdifulle utnyttelser "
+    "av samme infrastruktur."
 )

@@ -77,4 +77,38 @@ class TestGetObservations:
         store_observations(db_conn, sample_df)
         result = get_observations(db_conn, "2025-01-01", "2025-01-03")
         assert isinstance(result, pd.DataFrame)
-        assert set(result.columns) == {"station_id", "date", "precipitation_mm"}
+        assert set(result.columns) == {
+            "station_id", "date", "precipitation_mm", "air_temperature_c",
+        }
+
+    def test_temperature_optional(self, db_conn, sample_df):
+        # Inserting without temperature → column is NULL
+        store_observations(db_conn, sample_df)
+        result = get_observations(db_conn, "2025-01-01", "2025-01-03")
+        assert result["air_temperature_c"].isna().all()
+
+    def test_temperature_stored_when_present(self, db_conn):
+        df = pd.DataFrame({
+            "station_id": ["SN50540", "SN50540"],
+            "date": ["2025-06-01", "2025-06-02"],
+            "precipitation_mm": [2.5, 0.0],
+            "air_temperature_c": [14.2, 16.8],
+        })
+        store_observations(db_conn, df)
+        result = get_observations(db_conn, "2025-06-01", "2025-06-02")
+        assert result.iloc[0]["air_temperature_c"] == pytest.approx(14.2)
+        assert result.iloc[1]["air_temperature_c"] == pytest.approx(16.8)
+
+    def test_backfill_temperature_preserves_precipitation(self, db_conn, sample_df):
+        # Precipitation-only insert, then a temperature-only update for same dates
+        store_observations(db_conn, sample_df)
+        backfill = pd.DataFrame({
+            "station_id": ["SN50540", "SN50540", "SN50540"],
+            "date": ["2025-01-01", "2025-01-02", "2025-01-03"],
+            "precipitation_mm": [5.0, 0.0, 12.3],
+            "air_temperature_c": [3.1, 1.8, 0.5],
+        })
+        store_observations(db_conn, backfill)
+        result = get_observations(db_conn, "2025-01-01", "2025-01-03")
+        assert result.iloc[0]["precipitation_mm"] == pytest.approx(5.0)
+        assert result.iloc[0]["air_temperature_c"] == pytest.approx(3.1)

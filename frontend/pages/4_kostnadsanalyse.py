@@ -13,7 +13,9 @@ from backend.economics import (
     COST_ESTIMATES, CAPITAL_CATEGORIES, OPERATING_CATEGORIES,
     find_best_estimate, interpolate_cost, lifecycle_cost,
     cost_per_person, cost_per_liter, cost_breakdown,
+    estimate_for_scale,
 )
+from backend.scales import SCALES
 
 st.set_page_config(page_title="Kostnadsanalyse", page_icon="💰")
 st.title("Kostnadsanalyse")
@@ -41,6 +43,12 @@ if df.empty:
 # --- Scenario ---
 st.subheader("Ditt scenario")
 
+scale_key = st.session_state.get("scale", "household")
+default_pop = int(st.session_state.get("population", 0))
+default_roof = int(st.session_state.get("roof_area_m2", 0))
+
+st.caption(f"Aktiv skala: **{SCALES[scale_key].label}** (valgt på hovedsiden).")
+
 col1, col2 = st.columns(2)
 with col1:
     preset_keys = list(BUILDING_PRESETS.keys())
@@ -49,14 +57,18 @@ with col1:
     selected_key = preset_keys[preset_labels.index(selected_label)]
     preset = BUILDING_PRESETS[selected_key]
 with col2:
-    population = st.slider("Befolkning", 1, 2000, preset["default_people"])
+    population = st.slider("Befolkning", 1, 5000,
+                           min(5000, default_pop or preset["default_people"]))
 
-roof_area = preset["roof_area_m2"]
+roof_area = default_roof or preset["roof_area_m2"]
 total_rain = df["precipitation_mm"].sum()
 annual_liters = water_collected(total_rain, roof_area)
 
-# Find matching cost tier
-est = find_best_estimate(population)
+# Prefer the scale-based default cost tier, but let population override to a
+# finer-grained tier when it clearly lands in a different band.
+scale_default = estimate_for_scale(scale_key)
+population_based = find_best_estimate(population)
+est = population_based if population_based is not scale_default else scale_default
 capital, annual_op = interpolate_cost(population, est)
 
 # --- Key metrics ---

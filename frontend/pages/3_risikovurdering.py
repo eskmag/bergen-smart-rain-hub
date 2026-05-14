@@ -13,6 +13,7 @@ from backend.risk import (
     RISKS, CCPS, CATEGORY_LABELS, OVERALL_SEVERITY_ORDER,
     assess_scenario_risks,
 )
+from backend.scales import SCALES
 
 st.set_page_config(page_title="Risikovurdering", page_icon="⚠️")
 st.title("Risikovurdering")
@@ -43,6 +44,13 @@ st.markdown(
     "Juster parameterne under for å se hvilke risikoer som er mest relevante for ditt oppsett."
 )
 
+scale_key = st.session_state.get("scale", "household")
+default_roof = int(st.session_state.get("roof_area_m2", 0))
+default_pop = int(st.session_state.get("population", 0))
+default_tank = int(st.session_state.get("tank_liters", 5_000))
+
+st.caption(f"Aktiv skala: **{SCALES[scale_key].label}** (valgt på hovedsiden).")
+
 col1, col2, col3 = st.columns(3)
 with col1:
     preset_keys = list(BUILDING_PRESETS.keys())
@@ -50,11 +58,13 @@ with col1:
     selected_label = st.selectbox("Bygningstype", preset_labels)
     selected_key = preset_keys[preset_labels.index(selected_label)]
     preset = BUILDING_PRESETS[selected_key]
-    roof_area = preset["roof_area_m2"]
+    roof_area = default_roof or preset["roof_area_m2"]
 with col2:
-    population = st.slider("Befolkning", 1, 500, preset["default_people"])
+    population = st.slider("Befolkning", 1, 5000,
+                           min(5000, default_pop or preset["default_people"]))
 with col3:
-    tank_liters = st.slider("Tankkapasitet (liter)", 500, 100_000, 5000, step=500)
+    tank_liters = st.slider("Tankkapasitet (liter)", 500, 500_000,
+                            min(500_000, default_tank), step=500)
 
 # Run simulation to get context
 building = Building(preset["label"], roof_area_m2=roof_area, height_m=preset["height_m"])
@@ -74,6 +84,7 @@ assessed = assess_scenario_risks(
     roof_area_m2=roof_area,
     days_tank_empty=summary["days_tank_empty"],
     longest_dry_spell=summary["longest_dry_spell_days"],
+    scale=scale_key,
 )
 
 SEVERITY_COLORS = {

@@ -107,9 +107,10 @@ class TestStorageSimulation:
         df = make_df([10])
         buildings = [Building("Test", roof_area_m2=100)]
         sim = storage_simulation(df, buildings, 1000, 1)
-        expected_cols = {"date", "precipitation_mm", "inflow_liters", "consumption_liters",
-                         "tank_level_liters", "tank_pct", "days_remaining"}
-        assert set(sim.columns) == expected_cols
+        required_cols = {"date", "precipitation_mm", "inflow_liters", "consumption_liters",
+                         "tank_level_liters", "tank_pct", "days_remaining",
+                         "available_liters", "available_pct"}
+        assert required_cols.issubset(set(sim.columns))
 
 
 # --- find_dry_spells ---

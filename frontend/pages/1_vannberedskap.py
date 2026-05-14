@@ -37,32 +37,42 @@ if df.empty:
 
 # --- Configuration ---
 st.subheader("Juster scenarioet")
+
+scale_key = st.session_state.get("scale", "household")
+default_building_count = max(1, int(st.session_state.get("building_count", 1)))
+default_total_roof = int(st.session_state.get("roof_area_m2", 200 * default_building_count))
+default_population = int(st.session_state.get("population", 50))
+default_tank = int(st.session_state.get("tank_liters", 10_000))
+default_per_building_roof = max(50, default_total_roof // default_building_count)
+
 st.markdown(
-    "Bruk glidebryterne under til å tilpasse simuleringen. "
+    f"Aktiv skala: **{scale_key}**. Bruk glidebryterne under til å tilpasse simuleringen. "
     "Prøv å endre verdiene for å se hvordan de påvirker beredskapsvurderingen."
 )
 
 col1, col2, col3 = st.columns(3)
 with col1:
     roof_area = st.slider(
-        "Takareal per bygg (m²)", 50, 2000, 200, step=50,
+        "Takareal per bygg (m²)", 50, 30_000,
+        min(30_000, default_per_building_roof), step=50,
         help="Størrelsen på taket som samler opp regnvann. "
              "Et vanlig norsk hus har ca. 100–150 m², en blokk 300–800 m², "
              "et næringsbygg kan ha over 1000 m².",
     )
     num_buildings = st.slider(
-        "Antall bygg", 1, 50, 5,
+        "Antall bygg", 1, 50, min(50, default_building_count),
         help="Hvor mange bygninger som bidrar med oppsamlet regnvann. "
              "Flere bygg = større takflate = mer vann.",
     )
 with col2:
     population = st.slider(
-        "Befolkning (personer)", 1, 500, 50,
+        "Befolkning (personer)", 1, 5000, min(5000, default_population),
         help="Antall mennesker som skal forsynes med vann. "
              "En gjennomsnittlig norsk husholdning har 2,1 personer.",
     )
     tank_liters = st.slider(
-        "Tankkapasitet (liter)", 1000, 100_000, 10_000, step=1000,
+        "Tankkapasitet (liter)", 1000, 500_000,
+        min(500_000, default_tank), step=1000,
         help="Hvor mye vann tanken(e) kan lagre totalt. "
              "En typisk hagetank er 1 000–5 000 L, en nedgravd tank for borettslag "
              "kan være 10 000–50 000 L. 1 000 liter = 1 kubikkmeter.",
