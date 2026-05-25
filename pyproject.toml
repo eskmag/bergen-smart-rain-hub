@@ -6,10 +6,8 @@ requires-python = ">=3.11"
 license = "Apache-2.0"
 
 dependencies = [
-    "streamlit>=1.55,<2",
     "pandas>=2.3,<3",
     "numpy>=2.4,<3",
-    "altair>=6,<7",
     "requests>=2.32,<3",
     "python-dotenv>=1.2,<2",
     "fastapi>=0.115,<1",
