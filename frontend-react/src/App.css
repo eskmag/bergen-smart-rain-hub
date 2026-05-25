@@ -1,0 +1,218 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f8f9fa;
+  color: #212529;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav {
+  background: #fff;
+  border-bottom: 1px solid #dee2e6;
+  padding: 0.75rem 2rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav::before {
+  content: '🌧️ Bergen Smart Rain Hub';
+  font-weight: 700;
+  font-size: 1rem;
+  margin-right: auto;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #495057;
+  font-size: 0.95rem;
+  padding: 0.25rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-link.active,
+.nav-link:hover {
+  color: #2E86AB;
+  border-bottom-color: #2E86AB;
+}
+
+.main-content {
+  flex: 1;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+h1 { font-size: 1.75rem; margin: 0 0 0.25rem; }
+h2 { font-size: 1.25rem; margin: 1.75rem 0 0.5rem; }
+
+.subtitle {
+  color: #6c757d;
+  margin: 0 0 2rem;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.hero-card {
+  border-left: 5px solid;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.hero-card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.4rem;
+}
+
+.hero-card p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.section-divider {
+  border: none;
+  border-top: 1px solid #dee2e6;
+  margin: 2rem 0;
+}
+
+.radio-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.caption {
+  font-size: 0.82rem;
+  color: #6c757d;
+  margin: 0.25rem 0;
+}
+
+.slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.slider-row label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.slider-row input[type=range] {
+  width: 100%;
+  accent-color: #2E86AB;
+}
+
+.slider-row .slider-value {
+  font-size: 0.85rem;
+  color: #495057;
+  text-align: right;
+}
+
+select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+.alert-success { background: #d1e7dd; border: 1px solid #badbcc; color: #0f5132; }
+.alert-warning { background: #fff3cd; border: 1px solid #ffecb5; color: #664d03; }
+.alert-error   { background: #f8d7da; border: 1px solid #f5c2c7; color: #842029; }
+.alert-info    { background: #cff4fc; border: 1px solid #b6effb; color: #055160; }
+
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #dee2e6;
+  margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+  padding: 0.6rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #495057;
+}
+
+.tab-btn:hover { color: #2E86AB; }
+.tab-btn.active { color: #2E86AB; border-bottom-color: #2E86AB; font-weight: 600; }
+
+.cta-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.6rem 1.25rem;
+  background: #2E86AB;
+  color: #fff;
+  border-radius: 0.375rem;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.cta-link:hover { background: #256e8a; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th {
+  text-align: left;
+  padding: 0.5rem;
+  background: #f1f3f5;
+  border-bottom: 2px solid #dee2e6;
+}
+td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+}
