@@ -124,7 +124,5 @@ st.info(
 )
 st.caption(
     "Energiberegningen på denne siden viser ren gravitasjonsenergi (E = mgh) — "
-    "et teoretisk maksimum. I praksis er regnvanns-varmepumper (regnvann som "
-    "varmekilde) og passiv kjøling om sommeren langt mer verdifulle utnyttelser "
-    "av samme infrastruktur."
+    "et teoretisk maksimum. Vannberedskap er den primære verdien av regnvannsoppsamling."
 )
