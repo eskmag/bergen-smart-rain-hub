@@ -212,3 +212,5 @@ docs/
 # claude
 .claude/
 CLAUDE.md
+# data
+data/*.db
