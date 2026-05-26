@@ -17,7 +17,7 @@ function fmt(n: number, decimals = 0) {
 const SEVERITY_COLORS: Record<string, string> = {
   Kritisk: '#C1292E',
   Høy: '#E8963E',
-  Middels: '#2E86AB',
+  Middels: '#2B7A8E',
 }
 
 interface NavState {
@@ -135,54 +135,69 @@ export default function Vannberedskap() {
 
       {/* ── Shared controls (always visible) ── */}
       <div className="controls-panel">
-      <div className="grid-3">
-        <div>
-          <div className="slider-row">
-            <label>Takareal per bygg (m²): <strong>{fmt(roofPerBuilding)}</strong></label>
-            <input type="range" min={50} max={30000} step={50}
-              value={roofPerBuilding} onChange={e => setRoofPerBuilding(Number(e.target.value))} />
+        <div className="grid-3" style={{ margin: 0 }}>
+          <div>
+            <div className="slider-row">
+              <div className="slider-label">
+                <span className="slider-label-text">Takareal per bygg (m²)</span>
+                <span className="slider-label-value">{fmt(roofPerBuilding)}</span>
+              </div>
+              <input type="range" min={50} max={30000} step={50}
+                value={roofPerBuilding} onChange={e => setRoofPerBuilding(Number(e.target.value))} />
+            </div>
+            <div className="slider-row">
+              <div className="slider-label">
+                <span className="slider-label-text">Antall bygg</span>
+                <span className="slider-label-value">{numBuildings}</span>
+              </div>
+              <input type="range" min={1} max={50} step={1}
+                value={numBuildings} onChange={e => setNumBuildings(Number(e.target.value))} />
+            </div>
           </div>
-          <div className="slider-row">
-            <label>Antall bygg: <strong>{numBuildings}</strong></label>
-            <input type="range" min={1} max={50} step={1}
-              value={numBuildings} onChange={e => setNumBuildings(Number(e.target.value))} />
+          <div>
+            <div className="slider-row">
+              <div className="slider-label">
+                <span className="slider-label-text">Befolkning</span>
+                <span className="slider-label-value">{fmt(population)}</span>
+              </div>
+              <input type="range" min={1} max={5000} step={1}
+                value={population} onChange={e => setPopulation(Number(e.target.value))} />
+            </div>
+            <div className="slider-row">
+              <div className="slider-label">
+                <span className="slider-label-text">Tankkapasitet (liter)</span>
+                <span className="slider-label-value">{fmt(tankLiters)}</span>
+              </div>
+              <input type="range" min={1000} max={500000} step={1000}
+                value={tankLiters} onChange={e => setTankLiters(Number(e.target.value))} />
+            </div>
+          </div>
+          <div>
+            <div className="slider-row">
+              <div className="slider-label">
+                <span className="slider-label-text">Effektivitet</span>
+                <span className="slider-label-value">{efficiency} %</span>
+              </div>
+              <input type="range" min={50} max={95} step={1}
+                value={efficiency} onChange={e => setEfficiency(Number(e.target.value))} />
+            </div>
+            <div className="slider-row">
+              <span className="slider-label-text">Forbruksnivå</span>
+              <select value={usageLevel} onChange={e => setUsageLevel(e.target.value)} style={{ marginTop: '0.4rem' }}>
+                <option value="survival_total">Beredskap ({waterNeeds['survival_total'] ?? 13} L/p/dag)</option>
+                <option value="normal_usage">Normal ({waterNeeds['normal_usage'] ?? 150} L/p/dag)</option>
+              </select>
+            </div>
+            <div className="slider-row">
+              <span className="slider-label-text">Skala</span>
+              <select value={scale} onChange={e => setScale(e.target.value)} style={{ marginTop: '0.4rem' }}>
+                {(config?.scales ?? []).map(s => (
+                  <option key={s.key} value={s.key}>{s.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
-        <div>
-          <div className="slider-row">
-            <label>Befolkning: <strong>{fmt(population)}</strong></label>
-            <input type="range" min={1} max={5000} step={1}
-              value={population} onChange={e => setPopulation(Number(e.target.value))} />
-          </div>
-          <div className="slider-row">
-            <label>Tankkapasitet (liter): <strong>{fmt(tankLiters)}</strong></label>
-            <input type="range" min={1000} max={500000} step={1000}
-              value={tankLiters} onChange={e => setTankLiters(Number(e.target.value))} />
-          </div>
-        </div>
-        <div>
-          <div className="slider-row">
-            <label>Oppsamlingseffektivitet: <strong>{efficiency} %</strong></label>
-            <input type="range" min={50} max={95} step={1}
-              value={efficiency} onChange={e => setEfficiency(Number(e.target.value))} />
-          </div>
-          <div className="slider-row">
-            <label>Forbruksnivå</label>
-            <select value={usageLevel} onChange={e => setUsageLevel(e.target.value)}>
-              <option value="survival_total">Beredskap ({waterNeeds['survival_total'] ?? 13} L/p/dag)</option>
-              <option value="normal_usage">Normal ({waterNeeds['normal_usage'] ?? 150} L/p/dag)</option>
-            </select>
-          </div>
-          <div className="slider-row">
-            <label>Skala</label>
-            <select value={scale} onChange={e => setScale(e.target.value)}>
-              {(config?.scales ?? []).map(s => (
-                <option key={s.key} value={s.key}>{s.label}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
       </div>
 
       <hr className="section-divider" />
@@ -213,9 +228,9 @@ export default function Vannberedskap() {
             <div className="grid-3" style={{ marginTop: '1rem' }}>
               {simResult.scenario_comparison.map(c => (
                 <div key={c.scenario} style={{
-                  background: c.scenario === scenario ? '#e8f4f8' : '#f8f9fa',
-                  border: `1px solid ${c.scenario === scenario ? '#2E86AB' : '#dee2e6'}`,
-                  borderRadius: '0.5rem', padding: '1rem',
+                  background: c.scenario === scenario ? 'var(--color-primary-light)' : 'var(--color-surface)',
+                  border: `1px solid ${c.scenario === scenario ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                  borderRadius: 'var(--radius-md)', padding: '1rem',
                 }}>
                   <div style={{ fontWeight: c.scenario === scenario ? 700 : 400, marginBottom: '0.5rem' }}>
                     {c.label}
@@ -262,7 +277,7 @@ export default function Vannberedskap() {
               <p className="caption">Regn fyller tanken, daglig forbruk tømmer den. Den røde linjen markerer kritisk nivå (20 %).</p>
               <ResponsiveContainer width="100%" height={280}>
                 <AreaChart data={simResult.simulation_series} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#DCE3E9" />
                   <XAxis dataKey="date" tickFormatter={d => d.slice(5)} tick={{ fontSize: 11 }} />
                   <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                   <Tooltip
@@ -270,14 +285,14 @@ export default function Vannberedskap() {
                     labelFormatter={l => `Dato: ${l}`}
                   />
                   <ReferenceLine y={20} stroke="red" strokeDasharray="4 4" />
-                  <Area type="monotone" dataKey="tank_pct" stroke="#2E86AB" fill="#2E86AB" fillOpacity={0.35} dot={false} />
+                  <Area type="monotone" dataKey="tank_pct" stroke="#2B7A8E" fill="#2B7A8E" fillOpacity={0.35} dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
 
               <h2>Dager med vannforsyning igjen</h2>
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={simResult.simulation_series} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#DCE3E9" />
                   <XAxis dataKey="date" tickFormatter={d => d.slice(5)} tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} unit=" d" />
                   <Tooltip
@@ -346,13 +361,14 @@ export default function Vannberedskap() {
                   const color = SEVERITY_COLORS[risk.overall] ?? '#666'
                   const isOpen = openRisk === risk.name
                   return (
-                    <div key={risk.name} style={{ border: '1px solid #dee2e6', borderRadius: '0.375rem', overflow: 'hidden' }}>
+                    <div key={risk.name} style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
                       <button
                         onClick={() => setOpenRisk(isOpen ? null : risk.name)}
                         style={{
                           width: '100%', textAlign: 'left', padding: '0.75rem 1rem',
-                          background: '#f8f9fa', border: 'none', cursor: 'pointer',
+                          background: 'var(--color-surface)', border: 'none', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: '0.75rem',
+                          fontFamily: 'var(--font-body)',
                         }}
                       >
                         <span style={{
@@ -360,11 +376,11 @@ export default function Vannberedskap() {
                           borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap',
                         }}>{risk.overall}</span>
                         <span style={{ fontWeight: 500 }}>{risk.name}</span>
-                        <span style={{ marginLeft: 'auto', color: '#6c757d' }}>{isOpen ? '▲' : '▼'}</span>
+                        <span style={{ marginLeft: 'auto', color: 'var(--color-text-muted)' }}>{isOpen ? '▲' : '▼'}</span>
                       </button>
                       {isOpen && (
-                        <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid #dee2e6', background: '#fff' }}>
-                          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginBottom: '0.5rem', fontSize: '0.85rem', color: '#495057' }}>
+                        <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--color-border)', background: 'var(--color-card)' }}>
+                          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
                             <span><strong>Sannsynlighet:</strong> {risk.likelihood}</span>
                             <span><strong>Konsekvens:</strong> {risk.impact}</span>
                             <span><strong>Kategori:</strong> {riskMutation.data.category_labels[risk.category] ?? risk.category}</span>
@@ -412,21 +428,22 @@ export default function Vannberedskap() {
                 {riskMutation.data.ccps.map(ccp => {
                   const isOpen = openCcp === ccp.id
                   return (
-                    <div key={ccp.id} style={{ border: '1px solid #dee2e6', borderRadius: '0.375rem', overflow: 'hidden' }}>
+                    <div key={ccp.id} style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
                       <button
                         onClick={() => setOpenCcp(isOpen ? null : ccp.id)}
                         style={{
                           width: '100%', textAlign: 'left', padding: '0.75rem 1rem',
-                          background: '#f8f9fa', border: 'none', cursor: 'pointer',
+                          background: 'var(--color-surface)', border: 'none', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: '0.5rem',
+                          fontFamily: 'var(--font-body)',
                         }}
                       >
-                        <span style={{ fontWeight: 600, color: '#2E86AB' }}>{ccp.id}</span>
+                        <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{ccp.id}</span>
                         <span style={{ fontWeight: 500 }}>{ccp.name}</span>
-                        <span style={{ marginLeft: 'auto', color: '#6c757d' }}>{isOpen ? '▲' : '▼'}</span>
+                        <span style={{ marginLeft: 'auto', color: 'var(--color-text-muted)' }}>{isOpen ? '▲' : '▼'}</span>
                       </button>
                       {isOpen && (
-                        <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid #dee2e6', background: '#fff' }}>
+                        <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--color-border)', background: 'var(--color-card)' }}>
                           <p style={{ margin: '0 0 0.4rem', fontSize: '0.9rem' }}><strong>Beskrivelse:</strong> {ccp.description}</p>
                           <p style={{ margin: 0, fontSize: '0.9rem' }}><strong>Kontrollmål:</strong> {ccp.control_measure}</p>
                         </div>
@@ -505,14 +522,14 @@ export default function Vannberedskap() {
               <p className="caption">Total kostnad (investering + akkumulert drift) over tid. Godt designede systemer har en levetid på 20–40 år.</p>
               <ResponsiveContainer width="100%" height={260}>
                 <AreaChart data={lifecycleData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#DCE3E9" />
                   <XAxis dataKey="år" tick={{ fontSize: 11 }} unit=" år" />
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${fmt(v / 1000)}k`} />
                   <Tooltip
                     formatter={(v) => [`${fmt(Number(v))} kr`, 'Akkumulert kostnad']}
                     labelFormatter={l => `År ${l}`}
                   />
-                  <Area type="monotone" dataKey="kostnad" stroke="#2E86AB" fill="#2E86AB" fillOpacity={0.35} dot={false} />
+                  <Area type="monotone" dataKey="kostnad" stroke="#2B7A8E" fill="#2B7A8E" fillOpacity={0.35} dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
 
@@ -566,7 +583,7 @@ export default function Vannberedskap() {
                 </thead>
                 <tbody>
                   {costs.all_estimates.map(e => (
-                    <tr key={e.label} style={{ background: e.label === costs.estimate_label ? '#e8f4f8' : undefined }}>
+                    <tr key={e.label} style={{ background: e.label === costs.estimate_label ? 'var(--color-primary-light)' : undefined }}>
                       <td><strong>{e.label === costs.estimate_label ? e.label + ' ✓' : e.label}</strong></td>
                       <td>{fmt(e.capital_low)}</td>
                       <td>{fmt(e.capital_high)}</td>

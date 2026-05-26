@@ -84,7 +84,7 @@ export default function Home() {
   return (
     <>
       <section className="home-hero">
-        <h1>Hva skjer med vannet ditt<br />når krisen kommer?</h1>
+        <h1>Hva skjer med <em>vannet ditt</em><br />når krisen kommer?</h1>
         <p className="home-hero-sub">
           Bergen får over 2&nbsp;000&nbsp;mm nedbør i året — men i en beredskaps&shy;situasjon kan vannforsyningen
           svikte. Finn ut hvor mye regnvann ditt bygg kan samle, og hvor lenge det rekker.
