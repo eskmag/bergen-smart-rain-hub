@@ -114,7 +114,7 @@ export default function Vannberedskap() {
   }, [costs])
 
   return (
-    <>
+    <div className="page-content">
       <h1>Vannberedskap</h1>
       <p className="subtitle">
         Simuler regnvannsoppsamling som beredskapsressurs — for husholdning, borettslag eller nabolag.
@@ -134,7 +134,8 @@ export default function Vannberedskap() {
       </div>
 
       {/* ── Shared controls (always visible) ── */}
-      <div className="grid-3" style={{ marginTop: '1rem' }}>
+      <div className="controls-panel">
+      <div className="grid-3">
         <div>
           <div className="slider-row">
             <label>Takareal per bygg (m²): <strong>{fmt(roofPerBuilding)}</strong></label>
@@ -181,6 +182,7 @@ export default function Vannberedskap() {
             </select>
           </div>
         </div>
+      </div>
       </div>
 
       <hr className="section-divider" />
@@ -591,6 +593,6 @@ export default function Vannberedskap() {
           )}
         </>
       )}
-    </>
+    </div>
   )
 }

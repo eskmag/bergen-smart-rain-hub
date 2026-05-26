@@ -7,6 +7,9 @@ export default function App() {
   return (
     <div className="app-shell">
       <nav className="nav">
+        <NavLink to="/" end className="nav-brand">
+          🌧️ Bergen Rain Hub
+        </NavLink>
         <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           Hjem
         </NavLink>
