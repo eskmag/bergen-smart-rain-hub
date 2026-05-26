@@ -1,41 +1,41 @@
 /* ── Design Tokens ─────────────────────────────────────────────────────── */
 
 :root {
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Outfit', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
 
-  --color-primary: #2B7A8E;
-  --color-primary-dark: #1D5F72;
-  --color-primary-light: #DDF0F5;
+  --color-primary:       #1B6CA8;
+  --color-primary-dark:  #0C447C;
+  --color-primary-light: #EBF3FB;
 
-  --color-surface: #F5F7F8;
-  --color-card: #FFFFFF;
+  --color-surface: #F7F6F3;
+  --color-card:    #FFFFFF;
 
-  --color-text: #1A2B38;
-  --color-text-muted: #526070;
+  --color-text:       #0f1e28;
+  --color-text-muted: #5a6e7a;
 
-  --color-border: #DCE3E9;
+  --color-border: rgba(0,0,0,0.08);
 
-  --color-success-bg: #d1e7dd;
+  --color-success-bg:     #d1e7dd;
   --color-success-border: #badbcc;
-  --color-success-text: #0f5132;
-  --color-warning-bg: #fff3cd;
+  --color-success-text:   #0f5132;
+  --color-warning-bg:     #fff3cd;
   --color-warning-border: #ffecb5;
-  --color-warning-text: #664d03;
-  --color-error-bg: #f8d7da;
-  --color-error-border: #f5c2c7;
-  --color-error-text: #842029;
-  --color-info-bg: #e8f4f8;
-  --color-info-border: #b6d9e8;
-  --color-info-text: #0c4a6e;
+  --color-warning-text:   #664d03;
+  --color-error-bg:       #f8d7da;
+  --color-error-border:   #f5c2c7;
+  --color-error-text:     #842029;
+  --color-info-bg:        #e8f4f8;
+  --color-info-border:    #b6d9e8;
+  --color-info-text:      #0c4a6e;
 
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
   --shadow-lg: 0 12px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.05);
 
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  --radius-sm:   0.5rem;
+  --radius-md:   0.75rem;
+  --radius-lg:   1rem;
   --radius-pill: 99px;
 
   --transition: 0.15s ease;
@@ -82,18 +82,27 @@ body {
 }
 
 .nav-brand {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 0.88rem;
+  font-weight: 500;
   color: var(--color-text);
   text-decoration: none;
   margin-right: auto;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.6rem;
   letter-spacing: -0.01em;
-  font-optical-sizing: auto;
+}
+
+.nav-logomark {
+  width: 26px;
+  height: 26px;
+  background: var(--color-primary);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
 }
 
 .nav-link {
@@ -148,7 +157,7 @@ body {
 .home-hero-stats { animation-delay: 0.42s; }
 
 .home-hero h1 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(2.1rem, 5.5vw, 3.4rem);
   font-weight: 900;
   line-height: 1.1;
@@ -217,7 +226,7 @@ body {
 }
 
 .home-hero-stat-value {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 2rem;
   font-weight: 700;
   color: #fff;
@@ -243,7 +252,7 @@ body {
 }
 
 .configurator h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.35rem;
   font-weight: 700;
   margin: 0 0 0.3rem;
@@ -357,7 +366,7 @@ body {
 }
 
 .slider-label-value {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--color-primary);
@@ -430,7 +439,7 @@ input[type=range]::-moz-range-track {
 }
 
 .verdict-card h3 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   margin: 0 0 0.5rem;
   font-size: 1.35rem;
   font-weight: 800;
@@ -482,7 +491,7 @@ input[type=range]::-moz-range-track {
 }
 
 .metric-card-value {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-text);
@@ -520,7 +529,7 @@ input[type=range]::-moz-range-track {
 .tank-card.recommended .tank-card-label { color: var(--color-primary); }
 
 .tank-card-value {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.65rem;
   font-weight: 700;
   color: var(--color-text);
@@ -568,7 +577,7 @@ input[type=range]::-moz-range-track {
 }
 
 h1 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.9rem;
   font-weight: 800;
   margin: 0 0 0.25rem;
