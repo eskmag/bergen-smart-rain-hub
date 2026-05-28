@@ -5,6 +5,7 @@ import BeredskapsLayout from './pages/BeredskapsLayout'
 import Simulering from './pages/Simulering'
 import Risiko from './pages/Risiko'
 import Kostnader from './pages/Kostnader'
+import { BeredskapsProvider } from './context/BeredskapsContext'
 import './App.css'
 
 function navClass({ isActive }: { isActive: boolean }) {
@@ -13,25 +14,25 @@ function navClass({ isActive }: { isActive: boolean }) {
 
 function AppShell() {
   return (
-    <div className="app-shell">
-      <nav className="nav">
-        <NavLink to="/" end className="nav-brand">
-          <div className="nav-logomark">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
-              <path d="M12 2C8 8 5 12 5 16a7 7 0 0014 0c0-4-3-8-7-14z" fill="currentColor" />
-            </svg>
-          </div>
-          Bergen Smart Rain Hub
-        </NavLink>
-        <NavLink to="/beregn" className={navClass}>Beregn</NavLink>
-        <NavLink to="/beredskap" end className={navClass}>Simulering</NavLink>
-        <NavLink to="/beredskap/risiko" className={navClass}>Risiko</NavLink>
-        <NavLink to="/beredskap/kostnader" className={navClass}>Kostnader</NavLink>
-      </nav>
-      <main className="main-content">
-        <Outlet />
-      </main>
-    </div>
+    <BeredskapsProvider>
+      <div className="app-shell">
+        <nav className="nav">
+          <NavLink to="/" end className="nav-brand">
+            <div className="nav-logomark">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+                <path d="M12 2C8 8 5 12 5 16a7 7 0 0014 0c0-4-3-8-7-14z" fill="currentColor" />
+              </svg>
+            </div>
+            Bergen Smart Rain Hub
+          </NavLink>
+          <NavLink to="/beregn" className={navClass}>Beregn</NavLink>
+          <NavLink to="/beredskap" className={navClass}>Beredskap</NavLink>
+        </nav>
+        <main className="main-content">
+          <Outlet />
+        </main>
+      </div>
+    </BeredskapsProvider>
   )
 }
 

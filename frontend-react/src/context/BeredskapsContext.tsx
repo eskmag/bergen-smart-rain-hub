@@ -21,6 +21,7 @@ interface BeredskapsState {
   scale: string
   setScale: (v: string) => void
   heightM: number
+  setHeightM: (v: number) => void
   simResult: BeredskapsResponse | undefined
   isSimPending: boolean
   annualLiters: number
@@ -38,22 +39,22 @@ export function useBeredskap(): BeredskapsState {
 
 interface BeredskapsProviderProps {
   children: ReactNode
-  initialRoofArea: number
-  initialNumBuildings: number
-  initialPopulation: number
-  initialTankLiters: number
-  initialScale: string
-  initialHeightM: number
+  initialRoofArea?: number
+  initialNumBuildings?: number
+  initialPopulation?: number
+  initialTankLiters?: number
+  initialScale?: string
+  initialHeightM?: number
 }
 
 export function BeredskapsProvider({
   children,
-  initialRoofArea,
-  initialNumBuildings,
-  initialPopulation,
-  initialTankLiters,
-  initialScale,
-  initialHeightM,
+  initialRoofArea = 120,
+  initialNumBuildings = 1,
+  initialPopulation = 4,
+  initialTankLiters = 5000,
+  initialScale = 'household',
+  initialHeightM = 6,
 }: BeredskapsProviderProps) {
   const [roofPerBuilding, setRoofPerBuilding] = useState(initialRoofArea)
   const [numBuildings, setNumBuildings] = useState(initialNumBuildings)
@@ -63,6 +64,7 @@ export function BeredskapsProvider({
   const [usageLevel, setUsageLevel] = useState('survival_total')
   const [scenario, setScenario] = useState('historical')
   const [scale, setScale] = useState(initialScale)
+  const [heightM, setHeightM] = useState(initialHeightM)
 
   const simMutation = useMutation({ mutationFn: api.simulateBeredskap })
   const riskMutation = useMutation({ mutationFn: api.assessRisk })
@@ -71,7 +73,7 @@ export function BeredskapsProvider({
     const buildings = Array.from({ length: numBuildings }, (_, i) => ({
       label: `Bygg ${i + 1}`,
       roof_area_m2: roofPerBuilding,
-      height_m: initialHeightM,
+      height_m: heightM,
     }))
     simMutation.mutate({
       buildings,
@@ -82,7 +84,7 @@ export function BeredskapsProvider({
       climate_scenario: scenario,
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roofPerBuilding, numBuildings, population, tankLiters, efficiency, usageLevel, scenario])
+  }, [roofPerBuilding, numBuildings, population, tankLiters, efficiency, usageLevel, scenario, heightM])
 
   const simResult = simMutation.data
 
@@ -114,7 +116,7 @@ export function BeredskapsProvider({
       usageLevel, setUsageLevel,
       scenario, setScenario,
       scale, setScale,
-      heightM: initialHeightM,
+      heightM, setHeightM,
       simResult,
       isSimPending: simMutation.isPending,
       annualLiters,

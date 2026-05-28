@@ -1,16 +1,7 @@
-import { Outlet, NavLink, useLocation } from 'react-router-dom'
+import { Outlet, NavLink } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
-import { BeredskapsProvider, useBeredskap } from '../context/BeredskapsContext'
-
-interface NavState {
-  roof_area_m2?: number
-  height_m?: number
-  population?: number
-  tank_liters?: number
-  num_buildings?: number
-  scale?: string
-}
+import { useBeredskap } from '../context/BeredskapsContext'
 
 function fmt(n: number, decimals = 0) {
   return n.toLocaleString('nb-NO', { maximumFractionDigits: decimals })
@@ -104,34 +95,22 @@ function tabClass({ isActive }: { isActive: boolean }) {
 }
 
 export default function BeredskapsLayout() {
-  const location = useLocation()
-  const nav = (location.state ?? {}) as NavState
-
   return (
-    <BeredskapsProvider
-      initialRoofArea={nav.roof_area_m2 ?? 120}
-      initialNumBuildings={nav.num_buildings ?? 1}
-      initialPopulation={nav.population ?? 4}
-      initialTankLiters={nav.tank_liters ?? 5000}
-      initialScale={nav.scale ?? 'household'}
-      initialHeightM={nav.height_m ?? 6}
-    >
-      <div className="page-content">
-        <h1>Vannberedskap</h1>
-        <p className="subtitle">
-          Simuler regnvannsoppsamling som beredskapsressurs — for husholdning, borettslag eller nabolag.
-        </p>
+    <div className="page-content">
+      <h1>Vannberedskap</h1>
+      <p className="subtitle">
+        Simuler regnvannsoppsamling som beredskapsressurs — for husholdning, borettslag eller nabolag.
+      </p>
 
-        <ControlsPanel />
+      <ControlsPanel />
 
-        <div className="tab-bar">
-          <NavLink to="/beredskap" end className={tabClass}>Simulering</NavLink>
-          <NavLink to="/beredskap/risiko" className={tabClass}>Risikovurdering</NavLink>
-          <NavLink to="/beredskap/kostnader" className={tabClass}>Kostnadsanalyse</NavLink>
-        </div>
-
-        <Outlet />
+      <div className="tab-bar">
+        <NavLink to="/beredskap" end className={tabClass}>Simulering</NavLink>
+        <NavLink to="/beredskap/risiko" className={tabClass}>Risikovurdering</NavLink>
+        <NavLink to="/beredskap/kostnader" className={tabClass}>Kostnadsanalyse</NavLink>
       </div>
-    </BeredskapsProvider>
+
+      <Outlet />
+    </div>
   )
 }

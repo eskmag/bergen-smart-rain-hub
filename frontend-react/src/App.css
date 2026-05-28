@@ -761,3 +761,51 @@ td {
   color: var(--color-text);
 }
 tr:last-child td { border-bottom: none; }
+
+/* ── Disclosure (expandable) sections ──────────────────────────────────── */
+
+.disclosure-section {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.disclosure-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: left;
+  transition: background var(--transition);
+}
+
+.disclosure-header:hover {
+  background: var(--color-surface);
+}
+
+.disclosure-chevron {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  transition: transform var(--transition);
+  display: inline-block;
+}
+
+.disclosure-chevron.open {
+  transform: rotate(180deg);
+}
+
+.disclosure-body {
+  padding: 0 1.25rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+  animation: fadeUp 0.15s ease;
+}
