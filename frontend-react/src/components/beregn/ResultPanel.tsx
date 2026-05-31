@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   AreaChart, Area, XAxis, YAxis,
@@ -20,20 +19,26 @@ function verdictFor(daysTankEmpty: number) {
 
 export default function ResultPanel() {
   const {
+    buildingKey,
     simResult, isSimPending,
-    population, roofPerBuilding, usageLevel,
+    population, scale, annualLiters, usageLevel,
   } = useBeredskap()
 
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
 
-  const buildingLabel =
-    BUILDING_OPTIONS.find(o => {
-      const preset = config?.building_presets.find(p => p.key === o.key)
-      return preset?.roof_area_m2 === roofPerBuilding
-    })?.label.toLowerCase() ?? 'bygg'
+  const costsQuery = useQuery({
+    queryKey: ['costs', population, scale, Math.round(annualLiters)],
+    queryFn: () => api.costs(population, scale, annualLiters),
+    enabled: population > 0 && annualLiters > 0,
+  })
+  const costs = costsQuery.data
 
+  const buildingLabel =
+    BUILDING_OPTIONS.find(o => o.key === buildingKey)?.label.toLowerCase() ?? 'bygg'
+
+  const waterNeeds = config?.water_needs ?? {}
   const waterNeedPerDay =
-    config?.water_needs?.[usageLevel] ?? (usageLevel === 'normal_usage' ? 150 : 13)
+    waterNeeds[usageLevel] ?? (usageLevel === 'normal_usage' ? 150 : 13)
   const dailyNeed = population * waterNeedPerDay
 
   const summary = simResult?.summary ?? {}
@@ -83,6 +88,12 @@ export default function ResultPanel() {
         </div>
       </div>
 
+      <p className="k-who-note">
+        {waterNeeds['survival_total'] ?? 13} L/person/dag dekker drikke {waterNeeds['drinking'] ?? 3} ·
+        hygiene {waterNeeds['sanitation'] ?? 6} · matlaging {waterNeeds['cooking'] ?? 3} ·
+        medisin {waterNeeds['medical'] ?? 1} (WHO-minimum)
+      </p>
+
       {/* Tank recommendation */}
       <div className="k-tank-rec">
         <div>
@@ -98,6 +109,16 @@ export default function ResultPanel() {
           <div className="k-tr-opt">Robust: <strong>{fmt(dailyNeed * 60)} L</strong> · 60 dager</div>
         </div>
       </div>
+
+      {/* Cost line */}
+      {costs && (
+        <div className="k-cost-line">
+          <div className="k-cl-label">Anslått kostnad</div>
+          <div className="k-cl-val">
+            ~{fmt(costs.capital)} kr i investering · ~{fmt(costs.annual_op)} kr/år i drift
+          </div>
+        </div>
+      )}
 
       {/* Chart */}
       <div className="k-chart-card">
@@ -163,7 +184,6 @@ export default function ResultPanel() {
       <div className="k-data-note">
         <div className="k-note-dot" />
         Data fra Frost API · Bergen Florida SN50540 · WHO-standard 13 L/person/dag
-        <Link to="/beredskap" className="k-note-link">Se full beredskapsanalyse →</Link>
       </div>
     </div>
   )

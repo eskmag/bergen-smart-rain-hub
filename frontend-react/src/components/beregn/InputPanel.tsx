@@ -31,7 +31,7 @@ function clampTank(v: number) {
 
 export default function InputPanel() {
   const {
-    roofPerBuilding,
+    buildingKey: selectedKey, setBuildingKey,
     population, setPopulation,
     setRoofPerBuilding, setHeightM, setNumBuildings,
     setScale,
@@ -43,13 +43,6 @@ export default function InputPanel() {
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
   const [advancedOpen, setAdvancedOpen] = useState(false)
 
-  // Selected building is derived from the current roof area (set on selection).
-  const selectedKey =
-    BUILDING_OPTIONS.find(o => {
-      const preset = config?.building_presets.find(p => p.key === o.key)
-      return preset?.roof_area_m2 === roofPerBuilding
-    })?.key ?? 'enebolig'
-
   const waterNeedPerDay =
     config?.water_needs?.[usageLevel] ?? (usageLevel === 'normal_usage' ? 150 : 13)
   const dailyNeed = population * waterNeedPerDay
@@ -57,6 +50,7 @@ export default function InputPanel() {
   function handleBuildingSelect(key: string) {
     const preset = config?.building_presets.find(p => p.key === key)
     const opt = BUILDING_OPTIONS.find(o => o.key === key)!
+    setBuildingKey(key)
     if (preset) {
       setRoofPerBuilding(preset.roof_area_m2)
       setHeightM(preset.height_m)

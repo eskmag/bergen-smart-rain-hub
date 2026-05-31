@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { api } from '../api/client'
-import type { BeredskapsResponse, RiskAssessResponse } from '../api/client'
+import type { BeredskapsResponse } from '../api/client'
 
 interface BeredskapsState {
+  buildingKey: string
+  setBuildingKey: (v: string) => void
   roofPerBuilding: number
   setRoofPerBuilding: (v: number) => void
   numBuildings: number
@@ -25,8 +27,6 @@ interface BeredskapsState {
   simResult: BeredskapsResponse | undefined
   isSimPending: boolean
   annualLiters: number
-  riskResult: RiskAssessResponse | undefined
-  isRiskPending: boolean
 }
 
 const BeredskapsContext = createContext<BeredskapsState | null>(null)
@@ -56,6 +56,7 @@ export function BeredskapsProvider({
   initialScale = 'household',
   initialHeightM = 6,
 }: BeredskapsProviderProps) {
+  const [buildingKey, setBuildingKey] = useState('enebolig')
   const [roofPerBuilding, setRoofPerBuilding] = useState(initialRoofArea)
   const [numBuildings, setNumBuildings] = useState(initialNumBuildings)
   const [population, setPopulation] = useState(initialPopulation)
@@ -67,7 +68,6 @@ export function BeredskapsProvider({
   const [heightM, setHeightM] = useState(initialHeightM)
 
   const simMutation = useMutation({ mutationFn: api.simulateBeredskap })
-  const riskMutation = useMutation({ mutationFn: api.assessRisk })
 
   useEffect(() => {
     const buildings = Array.from({ length: numBuildings }, (_, i) => ({
@@ -88,19 +88,6 @@ export function BeredskapsProvider({
 
   const simResult = simMutation.data
 
-  useEffect(() => {
-    if (!simResult) return
-    riskMutation.mutate({
-      tank_liters: tankLiters,
-      population,
-      roof_area_m2: roofPerBuilding * numBuildings,
-      scale,
-      days_tank_empty: simResult.summary['days_tank_empty'] ?? 0,
-      longest_dry_spell: simResult.summary['longest_dry_spell_days'] ?? 0,
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [simResult, scale])
-
   const annualLiters = useMemo(
     () => (simResult?.summary['total_collected_liters'] ?? 0) as number,
     [simResult],
@@ -108,6 +95,7 @@ export function BeredskapsProvider({
 
   return (
     <BeredskapsContext.Provider value={{
+      buildingKey, setBuildingKey,
       roofPerBuilding, setRoofPerBuilding,
       numBuildings, setNumBuildings,
       population, setPopulation,
@@ -120,8 +108,6 @@ export function BeredskapsProvider({
       simResult,
       isSimPending: simMutation.isPending,
       annualLiters,
-      riskResult: riskMutation.data,
-      isRiskPending: riskMutation.isPending,
     }}>
       {children}
     </BeredskapsContext.Provider>
