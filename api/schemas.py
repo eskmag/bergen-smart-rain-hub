@@ -62,30 +62,6 @@ class Observation(BaseModel):
     air_temperature_c: float | None = None
 
 
-# ── Quick simulation ──────────────────────────────────────────────────────────
-
-class QuickSimRequest(BaseModel):
-    roof_area_m2: float
-    population: int
-    total_precipitation_mm: float
-
-
-class TankOption(BaseModel):
-    label: str
-    liters: int
-    days_covered: int
-    description: str
-
-
-class QuickSimResponse(BaseModel):
-    annual_liters: float
-    supply_days: float
-    verdict: str
-    color: str
-    metrics: dict[str, Any]
-    tank_options: list[TankOption]
-
-
 # ── Beredskap simulation ──────────────────────────────────────────────────────
 
 class BuildingInput(BaseModel):
@@ -131,41 +107,6 @@ class BeredskapsResponse(BaseModel):
     simulation_series: list[SimulationRow]
     dry_spells: list[DrySpell]
     scenario_comparison: list[ScenarioComparison] | None = None
-
-
-# ── Risk assessment ───────────────────────────────────────────────────────────
-
-class RiskAssessRequest(BaseModel):
-    tank_liters: int
-    population: int
-    roof_area_m2: float
-    scale: str = "household"
-    days_tank_empty: float = 0
-    longest_dry_spell: int = 0
-
-
-class AssessedRisk(BaseModel):
-    name: str
-    category: str
-    likelihood: str
-    impact: str
-    overall: str
-    mitigation: str
-    score: int
-    reason: str
-
-
-class CCP(BaseModel):
-    id: str
-    name: str
-    description: str
-    control_measure: str
-
-
-class RiskAssessResponse(BaseModel):
-    assessed_risks: list[AssessedRisk]
-    ccps: list[CCP]
-    category_labels: dict[str, str]
 
 
 # ── Cost analysis ─────────────────────────────────────────────────────────────

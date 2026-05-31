@@ -53,28 +53,6 @@ export interface Observation {
   air_temperature_c: number | null
 }
 
-export interface TankOption {
-  label: string
-  liters: number
-  days_covered: number
-  description: string
-}
-
-export interface QuickSimRequest {
-  roof_area_m2: number
-  population: number
-  total_precipitation_mm: number
-}
-
-export interface QuickSimResponse {
-  annual_liters: number
-  supply_days: number
-  verdict: string
-  color: string
-  metrics: Record<string, number>
-  tank_options: TankOption[]
-}
-
 export interface BuildingInput {
   label: string
   roof_area_m2: number
@@ -118,39 +96,6 @@ export interface BeredskapsResponse {
   simulation_series: SimulationRow[]
   dry_spells: DrySpell[]
   scenario_comparison: ScenarioComparison[] | null
-}
-
-export interface AssessedRisk {
-  name: string
-  category: string
-  likelihood: string
-  impact: string
-  overall: string
-  mitigation: string
-  score: number
-  reason: string
-}
-
-export interface CCP {
-  id: string
-  name: string
-  description: string
-  control_measure: string
-}
-
-export interface RiskAssessRequest {
-  tank_liters: number
-  population: number
-  roof_area_m2: number
-  scale: string
-  days_tank_empty: number
-  longest_dry_spell: number
-}
-
-export interface RiskAssessResponse {
-  assessed_risks: AssessedRisk[]
-  ccps: CCP[]
-  category_labels: Record<string, string>
 }
 
 export interface CostEstimateRow {
@@ -201,22 +146,8 @@ export const api = {
   observations: (days = 365) =>
     apiFetch<Observation[]>(`/api/observations?days=${days}`),
 
-  simulateQuick: (req: QuickSimRequest) =>
-    apiFetch<QuickSimResponse>('/api/simulate/quick', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req),
-    }),
-
   simulateBeredskap: (req: BeredskapsRequest) =>
     apiFetch<BeredskapsResponse>('/api/simulate/beredskap', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req),
-    }),
-
-  assessRisk: (req: RiskAssessRequest) =>
-    apiFetch<RiskAssessResponse>('/api/assess/risk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req),
