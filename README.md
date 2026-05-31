@@ -9,65 +9,103 @@ Ved vannkrise, forurensning eller infrastruktursvikt kan oppsamlet regnvann utgj
 
 ### Hovedfunksjoner
 
-- **Beredskapssimulering** — Simuler tanknivå dag for dag gjennom et helt år med ekte nedbørsdata. Se når tanken fylles opp, når den tømmes, og når vannforsyningen er kritisk.
-- **Tørkeperiode-analyse** — Identifiser de mest sårbare periodene der nedbøren uteblir og man er avhengig av lagret vann.
-- **Skalerbare scenarier** — Modeller alt fra én husholdning til et helt nabolag med justerbare parametere for takareal, tankkapasitet, befolkning og forbruksnivå.
-- **WHO-standarder** — Beregninger basert på Verdens helseorganisasjons minimumsforbruk ved krise (13 liter/person/dag).
-- **Energipotensial** — Sekundær analyse av teoretisk energi fra vannets fall (E = mgh), med CO₂-besparelser og praktiske sammenligninger.
+Hele opplevelsen er samlet i **Beredskapskalkulatoren** (`/beregn`) — én side fra valg til svar:
+
+- **Velg bygningstype** — enebolig, rekkehus, blokk, skole eller idrettshall, med realistiske takarealer.
+- **Beredskapssimulering** — simulerer tanknivå dag for dag gjennom et helt år med ekte nedbørsdata, og viser hvor lenge vannet rekker ved en krise.
+- **Sårbare perioder** — identifiserer de lengste tørkeperiodene der nedbøren uteblir og man er avhengig av lagret vann.
+- **Anbefalt tankstørrelse** — foreslår tankstørrelse ut fra hvor mange dager uten regn du vil være forberedt på.
+- **WHO-standarder** — beregninger basert på Verdens helseorganisasjons minimumsforbruk ved krise (13 liter/person/dag).
+- **Kostnadsoverslag** — indikativt anslag for investering og årlig drift.
 
 ---
 
 ### Datakilder
 
-Nedbørsdata hentes fra **Meteorologisk Institutt** sitt [Frost API](https://frost.met.no/), med målestasjon SN50540 (Bergen Florida). Systemet henter og lagrer det siste året med daglige nedbørsmålinger.
+Nedbørsdata hentes fra **Meteorologisk Institutt** sitt [Frost API](https://frost.met.no/), med målestasjon SN50540 (Bergen Florida). Systemet henter og lagrer det siste året med daglige nedbørs- og temperaturmålinger.
 
 ---
 
-### Prosjektstruktur
+### Arkitektur
+
+Tre lag: ren beregning i `backend/`, et tynt FastAPI-lag i `api/`, og en React + TypeScript-frontend i `frontend-react/`.
 
 ```
 bergen-smart-rain-hub/
 │
-├── backend/
-│   ├── frost_client.py      # Henter nedbørsdata fra Frost API (1 år)
-│   ├── analysis.py          # Beredskapsberegninger, vannoppsamling, energipotensial
-│   ├── database.py          # SQLite-lagring av observasjoner
-│   └── pipeline.py          # Orkestrering: hent data → lagre i database
+├── backend/                  # Ren beregningslogikk (ingen web-avhengigheter)
+│   ├── analysis.py           # Vannoppsamling, lagringssimulering, tørkeperioder, WHO-behov
+│   ├── scales.py             # Skala-definisjoner (husholdning → kritisk infrastruktur)
+│   ├── economics.py          # Kapital- og livsløpskostnader
+│   ├── climate.py            # Klimascenarier på historiske nedbørsserier
+│   ├── database.py           # SQLite-lagring av observasjoner
+│   ├── frost_client.py       # Henter nedbørsdata fra Frost API
+│   ├── pipeline.py           # Orkestrering: hent data → lagre i database
+│   └── config.py             # Stier, Frost-nøkler, DB_PATH
 │
-├── frontend/
-│   ├── app.py               # Hovedside — oversikt og nøkkeltall
-│   └── pages/
-│       ├── 1_vannberedskap.py    # Beredskapssimulering og tørkeanalyse
-│       └── 2_energipotensial.py  # Energiberegning (sekundær)
+├── api/                      # FastAPI — kun serialisering og DB-lesing
+│   ├── main.py               # App-fabrikk, CORS, router-registrering
+│   ├── schemas.py            # Pydantic request/response-modeller
+│   └── routers/              # config · observations · simulate/beredskap · costs
 │
-├── data/
-│   └── rain.db              # SQLite-database med nedbørsdata
+├── frontend-react/           # Vite + React + TypeScript
+│   └── src/
+│       ├── pages/            # Home (landingsside) · Beregn (kalkulator)
+│       ├── components/       # Landing*-seksjoner + beregn/ (InputPanel, ResultPanel …)
+│       ├── context/          # BeredskapsContext — delt simuleringstilstand
+│       └── api/client.ts     # Typede fetch-wrappere
 │
-└── docs/                    # Dokumentasjon
+├── data/rain.db              # SQLite-database med nedbørsdata
+├── tests/                    # pytest (112 tester)
+└── docs/                     # Kildedokument + fase-rapporter
 ```
 
 ---
 
 ### Teknisk stack
 
-- **Språk:** Python
-- **Frontend:** Streamlit
-- **API:** Frost API (Meteorologisk Institutt)
+- **Backend:** Python 3.11+, pandas, numpy
+- **API:** FastAPI + Pydantic + Uvicorn
+- **Frontend:** React + TypeScript + Vite, TanStack Query, Recharts, React Router
 - **Database:** SQLite
-- **Analyse:** pandas, numpy
-- **Visualisering:** Altair
+- **Datakilde:** Frost API (Meteorologisk Institutt)
 
 ---
 
-### Eksempeldata fra Bergen (siste år)
+### Kom i gang
+
+Krever Python 3.11+ og Node.js. Avhengigheter er pinnet i `pyproject.toml`.
+
+```bash
+# 1. Backend-avhengigheter (fra et aktivert .venv)
+pip install -e ".[dev]"
+
+# 2. Hent nedbørsdata (krever CLIENT_ID, CLIENT_SECRET, FROST_API_ENDPOINT i .env)
+python -m backend.pipeline
+
+# 3. Start API-serveren
+uvicorn api.main:app --reload          # http://localhost:8000
+
+# 4. Start React-frontenden (i et eget terminalvindu)
+cd frontend-react && npm install && npm run dev
+```
+
+Åpne `http://localhost:5173` — Vite proxyer `/api` til FastAPI på port 8000.
+
+Kjør testene med `python -m pytest tests/`.
+
+---
+
+### Eksempeldata fra Bergen (siste år, enebolig 120 m²)
 
 | Nøkkeltall | Verdi |
 |---|---|
-| Total nedbør | 2 213 mm |
-| Lengste tørkeperiode | 25 dager |
-| Vann fra ett hustak (150 m²) | 282 000 liter |
-| Beredskapsforsyning (1 person) | 21 700 dager |
-| Beredskapsforsyning (4 pers. familie) | 5 400 dager |
+| Total nedbør | ~2 200 mm |
+| Lengste tørkeperiode | 24 dager |
+| Årlig oppsamling (120 m² tak) | ~217 000 liter |
+| Beredskapsforsyning (4 pers. familie) | ~4 170 dager |
+
+_Verdiene er illustrative og avhenger av takareal, tankstørrelse og forbruksnivå._
 
 ---
 
