@@ -214,3 +214,4 @@ docs/
 CLAUDE.md
 # data
 data/*.db
+.DS_Store
