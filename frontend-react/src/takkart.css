@@ -1,0 +1,511 @@
+/* Takkart — map-based roof measurement page.
+   All classes are t-prefixed. Reuses :root design tokens from App.css. */
+
+.t-shell {
+  --t-blue:        var(--color-primary);
+  --t-blue-light:  var(--color-primary-light);
+  --t-blue-dark:   var(--color-primary-dark);
+  --t-blue-mid:    #378ADD;
+  --t-green:       #3A7D44;
+  --t-green-light: #EAF3DE;
+  --t-green-dark:  #27500A;
+  --t-amber:       #B45309;
+  --t-amber-light: #FEF3C7;
+  --t-red:         #C1440E;
+  --t-red-light:   #FEE8E0;
+  --t-ink:         var(--color-text);
+  --t-muted:       var(--color-text-muted);
+  --t-border:      var(--color-border);
+  --t-surface:     var(--color-surface);
+  --t-white:       #ffffff;
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--t-surface);
+  color: var(--t-ink);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── NAV ──────────────────────────────────────────── */
+.t-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 56px;
+  background: var(--t-white);
+  border-bottom: 1px solid var(--t-border);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  flex-shrink: 0;
+}
+
+.t-nav-left { display: flex; align-items: center; gap: 1rem; }
+
+.t-nav-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--t-muted);
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s, color 0.15s;
+}
+.t-nav-back:hover { background: var(--t-surface); color: var(--t-ink); }
+
+.t-nav-divider { width: 1px; height: 18px; background: var(--t-border); }
+.t-nav-title { font-size: 14px; font-weight: 500; color: var(--t-ink); }
+
+/* Mode toggle */
+.t-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+}
+
+.t-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 14px;
+  border-radius: 99px;
+  border: none;
+  background: transparent;
+  color: var(--t-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.t-mode-btn:hover { color: var(--t-ink); }
+.t-mode-btn.active {
+  background: var(--t-white);
+  color: var(--t-blue);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+}
+
+/* ── LAYOUT ───────────────────────────────────────── */
+.t-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  flex: 1;
+  min-height: calc(100vh - 56px);
+}
+
+/* ── MAP PANEL ────────────────────────────────────── */
+.t-map-panel {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-right: 1px solid var(--t-border);
+}
+
+.t-map-panel .leaflet-container {
+  flex: 1;
+  min-height: 400px;
+  z-index: 1;
+}
+
+/* Address search */
+.t-address-wrap {
+  position: relative;
+  padding: 0.75rem 1rem;
+  background: var(--t-white);
+  border-bottom: 1px solid var(--t-border);
+  z-index: 500;
+}
+
+.t-address-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid var(--t-border);
+  border-radius: var(--radius-md);
+  background: var(--t-white);
+  padding: 0 10px;
+  transition: border-color 0.15s;
+}
+.t-address-field:focus-within { border-color: var(--t-blue); }
+
+.t-address-icon { color: var(--t-muted); flex-shrink: 0; }
+
+.t-address-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--t-ink);
+  background: transparent;
+  padding: 10px 0;
+}
+.t-address-input::placeholder { color: var(--t-muted); }
+
+.t-address-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--t-border);
+  border-top-color: var(--t-blue);
+  border-radius: 50%;
+  animation: t-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes t-spin { to { transform: rotate(360deg); } }
+
+.t-address-dropdown {
+  position: absolute;
+  top: calc(100% - 0.75rem);
+  left: 1rem;
+  right: 1rem;
+  background: var(--t-white);
+  border: 1px solid var(--t-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 600;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.t-address-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--t-ink);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  transition: background 0.12s;
+}
+.t-address-option:hover { background: var(--t-blue-light); color: var(--t-blue); }
+.t-address-option svg { color: var(--t-muted); flex-shrink: 0; }
+
+.t-address-error {
+  font-size: 12px;
+  color: var(--t-red);
+  margin: 6px 0 0;
+}
+
+/* ── RESULT PANEL ─────────────────────────────────── */
+.t-result-panel {
+  background: var(--t-white);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empty state */
+.t-result-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  gap: 1rem;
+}
+
+.t-empty-icon { color: var(--t-border); }
+.t-empty-text { font-size: 15px; font-weight: 500; color: var(--t-ink); margin: 0; }
+.t-empty-sub { font-size: 13px; color: var(--t-muted); margin: 0; max-width: 300px; }
+
+/* Hero */
+.t-result-hero {
+  background: var(--t-blue);
+  color: #fff;
+  padding: 2rem 2rem 1.5rem;
+}
+
+.t-rh-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-bottom: 0.4rem;
+}
+
+.t-rh-area {
+  font-size: 48px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.t-rh-unit { font-size: 20px; font-weight: 300; opacity: 0.8; }
+
+/* Supply card */
+.t-supply-card {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--t-border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.t-sc-number {
+  font-size: 36px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--t-ink);
+  line-height: 1;
+}
+
+.t-sc-label {
+  font-size: 13px;
+  color: var(--t-muted);
+  margin-bottom: 0.75rem;
+}
+
+/* Status pills */
+.t-status-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+}
+.t-status-pill.excellent { background: var(--t-green-light); color: var(--t-green-dark); }
+.t-status-pill.good      { background: var(--t-blue-light);  color: var(--t-blue-dark);  }
+.t-status-pill.moderate  { background: var(--t-amber-light); color: var(--t-amber);      }
+.t-status-pill.low       { background: var(--t-red-light);   color: var(--t-red);        }
+
+/* Metrics row */
+.t-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--t-border);
+  border-top: 1px solid var(--t-border);
+  border-bottom: 1px solid var(--t-border);
+}
+
+.t-metric-card {
+  background: var(--t-white);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.t-mc-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--t-muted);
+}
+
+.t-mc-val {
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--t-ink);
+}
+
+.t-mc-unit { font-size: 12px; color: var(--t-muted); font-weight: 400; }
+
+/* People row */
+.t-people-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--t-border);
+}
+
+.t-people-label { font-size: 13px; font-weight: 500; color: var(--t-ink); }
+.t-people-note  { font-size: 12px; color: var(--t-muted); margin-left: auto; }
+
+.t-stepper {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--t-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.t-stepper-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--t-surface);
+  font-size: 18px;
+  color: var(--t-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  transition: background 0.15s, color 0.15s;
+}
+.t-stepper-btn:hover { background: var(--t-blue-light); color: var(--t-blue); }
+
+.t-stepper-val {
+  min-width: 48px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--t-ink);
+  border-left: 1px solid var(--t-border);
+  border-right: 1px solid var(--t-border);
+  padding: 0 0.5rem;
+  line-height: 36px;
+}
+
+/* Tank section */
+.t-tank-section {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--t-border);
+}
+
+.t-tank-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t-muted);
+  margin-bottom: 0.875rem;
+}
+
+.t-tank-opts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.t-tank-opt {
+  border: 1.5px solid var(--t-border);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--t-white);
+}
+
+.t-tank-opt-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--t-muted);
+}
+
+.t-tank-opt-liters {
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--t-ink);
+}
+
+.t-tank-opt-days { font-size: 11px; color: var(--t-muted); }
+
+/* Chart */
+.t-chart-card {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--t-border);
+}
+
+.t-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.t-chart-title { font-size: 13px; font-weight: 500; color: var(--t-ink); }
+
+.t-chart-legend { display: flex; gap: 12px; }
+.t-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--t-muted); }
+.t-legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+.t-placeholder { font-size: 13px; color: var(--t-muted); text-align: center; padding: 1rem 0; margin: 0; }
+
+/* Dry spells */
+.t-dry-spells-card { padding: 1.5rem 2rem; }
+
+.t-ds-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.t-ds-title { font-size: 13px; font-weight: 500; color: var(--t-ink); }
+.t-ds-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--t-muted);
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.t-ds-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0.625rem 0;
+  border-top: 1px solid var(--t-border);
+}
+
+.t-ds-days { font-size: 14px; font-weight: 500; color: var(--t-ink); }
+.t-ds-dates { font-size: 11px; color: var(--t-muted); font-family: var(--font-mono); font-weight: 300; }
+
+.t-ds-bar-wrap { min-width: 0; }
+.t-ds-bar { height: 6px; background: var(--t-surface); border-radius: 3px; overflow: hidden; }
+.t-ds-bar-fill { height: 100%; background: var(--t-amber); border-radius: 3px; }
+
+.t-ds-tag-longest {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--t-amber-light);
+  color: var(--t-amber);
+  white-space: nowrap;
+}
+.t-ds-tag-muted { font-size: 13px; color: var(--t-border); text-align: center; }
+
+/* ── GEOMAN TOOLBAR OVERRIDES ─────────────────────── */
+.leaflet-pm-toolbar .leaflet-pm-icon-polygon { /* use Geoman defaults */ }
+
+/* ── RESPONSIVE ───────────────────────────────────── */
+@media (max-width: 900px) {
+  .t-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 55vh auto;
+  }
+  .t-map-panel { border-right: none; border-bottom: 1px solid var(--t-border); }
+  .t-map-panel .leaflet-container { min-height: 300px; }
+  .t-nav-title { display: none; }
+}

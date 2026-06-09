@@ -9,14 +9,20 @@ Ved vannkrise, forurensning eller infrastruktursvikt kan oppsamlet regnvann utgj
 
 ### Hovedfunksjoner
 
-Hele opplevelsen er samlet i **Beredskapskalkulatoren** (`/beregn`) — én side fra valg til svar:
+**Beredskapskalkulator** (`/beregn`) — velg bygningstype, antall personer og tankstørrelse:
 
-- **Velg bygningstype** — enebolig, rekkehus, blokk, skole eller idrettshall, med realistiske takarealer.
-- **Beredskapssimulering** — simulerer tanknivå dag for dag gjennom et helt år med ekte nedbørsdata, og viser hvor lenge vannet rekker ved en krise.
-- **Sårbare perioder** — identifiserer de lengste tørkeperiodene der nedbøren uteblir og man er avhengig av lagret vann.
-- **Anbefalt tankstørrelse** — foreslår tankstørrelse ut fra hvor mange dager uten regn du vil være forberedt på.
-- **WHO-standarder** — beregninger basert på Verdens helseorganisasjons minimumsforbruk ved krise (13 liter/person/dag).
+- **Beredskapssimulering** — simulerer tanknivå dag for dag gjennom et helt år med ekte nedbørsdata.
+- **Sårbare perioder** — identifiserer de lengste tørkeperiodene der nedbøren uteblir.
+- **Anbefalt tankstørrelse** — foreslår tankstørrelse basert på ønsket beredskapshorisont.
+- **WHO-standarder** — beregninger basert på 13 liter/person/dag (kriseminimum).
 - **Kostnadsoverslag** — indikativt anslag for investering og årlig drift.
+
+**Takkart** (`/takkart`) — mål takflaten direkte på kartet:
+
+- **Adressesøk** — søk opp adressen din og få bygningens takfotavtrykk automatisk fra OpenStreetMap (Overpass API). Kartverket FKB-Bygning planlegges som kilde i produksjon.
+- **Manuell oppmåling** — tegn et polygon på kartet for å måle taket nøyaktig (geodesisk areal via Turf.js).
+- **Direkte beregning** — årsoppsamling, beredskapsdager og tankanbefaling oppdateres umiddelbart fra det målte arealet.
+- **Kartunderlag** — Kartverket topografisk kart med OpenStreetMap som fallback.
 
 ---
 
@@ -50,9 +56,10 @@ bergen-smart-rain-hub/
 │
 ├── frontend-react/           # Vite + React + TypeScript
 │   └── src/
-│       ├── pages/            # Home (landingsside) · Beregn (kalkulator)
-│       ├── components/       # Landing*-seksjoner + beregn/ (InputPanel, ResultPanel …)
-│       ├── context/          # BeredskapsContext — delt simuleringstilstand
+│       ├── pages/            # Home · Beregn (kalkulator) · Takkart (kartmåling)
+│       ├── components/       # Landing*-seksjoner + beregn/ + takkart/
+│       ├── context/          # BeredskapsContext · TakkartContext
+│       ├── lib/rainwater.ts  # Klientside-beregninger (årsoppsamling, beredskapsdager)
 │       └── api/client.ts     # Typede fetch-wrappere
 │
 ├── data/rain.db              # SQLite-database med nedbørsdata
@@ -66,7 +73,7 @@ bergen-smart-rain-hub/
 
 - **Backend:** Python 3.11+, pandas, numpy
 - **API:** FastAPI + Pydantic + Uvicorn
-- **Frontend:** React + TypeScript + Vite, TanStack Query, Recharts, React Router
+- **Frontend:** React + TypeScript + Vite, TanStack Query, Recharts, React Router, React-Leaflet, Turf.js
 - **Database:** SQLite
 - **Datakilde:** Frost API (Meteorologisk Institutt)
 

@@ -16,6 +16,8 @@ eggs/
 .eggs/
 lib/
 lib64/
+# frontend-react/src/lib/ is TypeScript source, not a Python lib
+!frontend-react/src/lib/
 parts/
 sdist/
 var/

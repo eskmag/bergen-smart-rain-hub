@@ -31,6 +31,7 @@ interface BeredskapsState {
 
 const BeredskapsContext = createContext<BeredskapsState | null>(null)
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useBeredskap(): BeredskapsState {
   const ctx = useContext(BeredskapsContext)
   if (!ctx) throw new Error('useBeredskap must be used within BeredskapsProvider')
