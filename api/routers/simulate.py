@@ -30,7 +30,7 @@ def simulate_beredskap(req: BeredskapsRequest):
     df_scenario = apply_climate_projection(df, req.climate_scenario)
 
     buildings = [
-        Building(b.label, roof_area_m2=b.roof_area_m2, height_m=b.height_m)
+        Building(b.name, roof_area_m2=b.roof_area_m2, height_m=b.height_m)
         for b in req.buildings
     ]
 

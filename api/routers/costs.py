@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 
 from backend.economics import (
     COST_ESTIMATES, CAPITAL_CATEGORIES, OPERATING_CATEGORIES,
-    find_best_estimate, estimate_for_scale, interpolate_cost,
+    choose_estimate, interpolate_cost,
     lifecycle_cost, cost_per_person, cost_per_liter, cost_breakdown,
 )
 from api.schemas import CostsResponse, CostEstimateRow, CostBreakdownItem
@@ -16,9 +16,10 @@ def get_costs(
     scale: str = Query(default="household"),
     annual_liters: float = Query(default=0, ge=0),
 ):
-    scale_default = estimate_for_scale(scale)
-    population_based = find_best_estimate(population)
-    est = population_based if population_based is not scale_default else scale_default
+    try:
+        est = choose_estimate(scale, population)
+    except KeyError:
+        raise HTTPException(status_code=422, detail=f"Ukjent skala: {scale!r}")
 
     capital, annual_op = interpolate_cost(population, est)
 

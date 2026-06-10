@@ -4,8 +4,8 @@ from backend.analysis import BUILDING_PRESETS, WATER_NEEDS
 from backend.climate import SCENARIOS
 from backend.scales import SCALES, SCALE_PRESETS, INFRASTRUCTURE_FACILITIES
 from api.schemas import (
-    ConfigResponse, ScaleSchema, BuildingPreset, InfrastructureFacility,
-    ClimateScenario,
+    ConfigResponse, ConfigDefaults, ScaleSchema, BuildingPreset,
+    InfrastructureFacility, ClimateScenario,
 )
 
 router = APIRouter()
@@ -50,4 +50,5 @@ def get_config():
         infrastructure_facilities=infrastructure_facilities,
         climate_scenarios=climate_scenarios,
         water_needs=WATER_NEEDS,
+        defaults=ConfigDefaults(),
     )

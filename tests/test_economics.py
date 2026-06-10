@@ -2,7 +2,7 @@ import pytest
 
 from backend.economics import (
     COST_ESTIMATES, CAPITAL_CATEGORIES, OPERATING_CATEGORIES,
-    find_best_estimate, interpolate_cost, lifecycle_cost,
+    choose_estimate, find_best_estimate, interpolate_cost, lifecycle_cost,
     cost_per_person, cost_per_liter, cost_breakdown,
 )
 
@@ -41,6 +41,25 @@ class TestFindBestEstimate:
     def test_above_maximum_returns_largest(self):
         est = find_best_estimate(5000)
         assert est == COST_ESTIMATES[-1]
+
+
+class TestChooseEstimate:
+    def test_population_in_range_wins(self):
+        est = choose_estimate("infrastructure", 50)
+        assert est.label == "Boligblokk (20 enheter)"
+
+    def test_out_of_range_falls_back_to_scale_default(self):
+        # Population 3 is below every tier's capacity range
+        est = choose_estimate("infrastructure", 3)
+        assert est.label == "Sykehusavdeling"
+
+    def test_household_default(self):
+        est = choose_estimate("household", 3)
+        assert est == COST_ESTIMATES[0]
+
+    def test_unknown_scale_raises(self):
+        with pytest.raises(KeyError):
+            choose_estimate("bogus", 4)
 
 
 class TestInterpolateCost:
