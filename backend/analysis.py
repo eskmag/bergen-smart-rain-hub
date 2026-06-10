@@ -3,8 +3,6 @@ from dataclasses import dataclass
 import pandas as pd
 import numpy as np
 
-G = 9.81  # gravitational acceleration (m/s²)
-
 # --- Emergency water needs (WHO / Norwegian standards) ---
 WATER_NEEDS = {
     "drinking": 3.0,       # liters/person/day — WHO survival minimum
@@ -19,10 +17,13 @@ WATER_NEEDS = {
 EMERGENCY_RESERVE_DAYS = 7
 EMERGENCY_RESERVE_PCT = 0.25
 
-EMISSION_FACTORS = {
-    "NO": 11,    # Norway: ~11 g CO₂/kWh (hydro-dominated grid)
-    "EU": 250,   # EU average: ~250 g CO₂/kWh
-}
+# --- Shared defaults (single source — exposed to the frontend via /api/config) ---
+DEFAULT_COLLECTION_EFFICIENCY = 0.85
+DEFAULT_BUILDING_HEIGHT_M = 5.0
+# Normalnedbør for Bergen Florida, used for quick annual estimates without DB access
+BERGEN_ANNUAL_RAINFALL_MM = 2250
+# Tank sizing tiers: minimum / anbefalt / robust coverage in dry days
+TANK_RECOMMENDATION_DAYS = (7, 30, 60)
 
 SEASONS = {
     12: "Vinter (DJF)", 1: "Vinter (DJF)", 2: "Vinter (DJF)",
@@ -36,7 +37,7 @@ SEASONS = {
 class Building:
     name: str
     roof_area_m2: float
-    height_m: float = 5.0
+    height_m: float = DEFAULT_BUILDING_HEIGHT_M
 
 
 # Norwegian building presets: (label, roof_area_m2, default_people, height_m, description)
@@ -100,17 +101,18 @@ BUILDING_PRESETS = {
 }
 
 
-def recommend_tank_size(annual_liters, population, target_dry_days=30):
+def recommend_tank_size(annual_liters, population, target_dry_days=TANK_RECOMMENDATION_DAYS[1]):
     """Recommend a tank size that covers a target number of dry days
     at survival consumption level. Returns a list of options."""
     daily_need = WATER_NEEDS["survival_total"] * population
     base_tank = daily_need * target_dry_days
+    min_days, _, robust_days = TANK_RECOMMENDATION_DAYS
 
     options = [
         {
             "label": "Minimum",
-            "liters": round(daily_need * 7 / 100) * 100,
-            "days_covered": 7,
+            "liters": round(daily_need * min_days / 100) * 100,
+            "days_covered": min_days,
             "description": "Dekker 1 uke uten nedbør",
         },
         {
@@ -121,8 +123,8 @@ def recommend_tank_size(annual_liters, population, target_dry_days=30):
         },
         {
             "label": "Robust",
-            "liters": round(daily_need * 60 / 100) * 100,
-            "days_covered": 60,
+            "liters": round(daily_need * robust_days / 100) * 100,
+            "days_covered": robust_days,
             "description": "Dekker 2 måneder uten nedbør",
         },
     ]
@@ -159,13 +161,13 @@ def available_volume(tank_level_liters, tank_capacity_liters, population,
 # Water collection (core calculation)
 # ============================================================
 
-def water_collected(mm_rain, roof_area_m2, collection_efficiency=0.85):
+def water_collected(mm_rain, roof_area_m2, collection_efficiency=DEFAULT_COLLECTION_EFFICIENCY):
     """Calculate liters collected from a roof. Default 85% efficiency
     accounts for first-flush diversion, guttering losses, and evaporation."""
     return mm_rain * roof_area_m2 * collection_efficiency
 
 
-def daily_collection(df, buildings, collection_efficiency=0.85):
+def daily_collection(df, buildings, collection_efficiency=DEFAULT_COLLECTION_EFFICIENCY):
     """Calculate daily water collection for each building."""
     df = df.copy()
     df["date"] = pd.to_datetime(df["date"])
@@ -200,7 +202,7 @@ def emergency_supply_days(total_liters, population, usage_level="survival_total"
 
 
 def storage_simulation(df, buildings, tank_capacity_liters, population,
-                       usage_level="survival_total", collection_efficiency=0.85,
+                       usage_level="survival_total", collection_efficiency=DEFAULT_COLLECTION_EFFICIENCY,
                        reserve_days=EMERGENCY_RESERVE_DAYS,
                        reserve_pct=EMERGENCY_RESERVE_PCT):
     """Simulate daily tank level: rainfall fills it, consumption drains it.
@@ -266,7 +268,7 @@ def find_dry_spells(df, min_days=3):
 
 
 def emergency_summary(df, buildings, tank_capacity_liters, population,
-                      collection_efficiency=0.85):
+                      collection_efficiency=DEFAULT_COLLECTION_EFFICIENCY):
     """Complete emergency preparedness assessment."""
     collection = daily_collection(df, buildings, collection_efficiency)
     total_collected = collection["liters"].sum()
@@ -333,37 +335,6 @@ def seasonal_summary(df):
     ).reset_index()
 
     return summary
-
-
-# ============================================================
-# Energy analysis (secondary)
-# ============================================================
-
-def calculate_rain_energy(mm_rain, roof_area_m2, height_m):
-    liters = mm_rain * roof_area_m2
-    mass_kg = liters  # 1 liter water = 1 kg
-
-    energy_joules = mass_kg * G * height_m
-    energy_wh = energy_joules / 3600
-
-    return liters, energy_wh
-
-
-def co2_offset(energy_wh):
-    energy_kwh = energy_wh / 1000
-    return {
-        grid: energy_kwh * factor
-        for grid, factor in EMISSION_FACTORS.items()
-    }
-
-
-def practical_equivalents(energy_wh):
-    return {
-        "phone_charges": energy_wh / 10,
-        "led_bulb_hours": energy_wh / 7,
-        "laptop_charges": energy_wh / 50,
-        "electric_bike_km": energy_wh / 15,
-    }
 
 
 if __name__ == "__main__":

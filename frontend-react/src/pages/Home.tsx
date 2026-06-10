@@ -11,7 +11,10 @@ import LandingData from '../components/LandingData'
 import LandingCTA from '../components/LandingCTA'
 import '../landing.css'
 
-function computeStats(observations: Observation[], config: ConfigResponse | undefined) {
+// Example roof used for the landing-page stat — a typical enebolig roof
+const EXAMPLE_ROOF_M2 = 150
+
+function computeStats(observations: Observation[], config: ConfigResponse) {
   const totalMm = Math.round(observations.reduce((s, o) => s + o.precipitation_mm, 0))
 
   let maxDry = 0, cur = 0
@@ -20,8 +23,10 @@ function computeStats(observations: Observation[], config: ConfigResponse | unde
     else cur = 0
   }
 
-  const roofCollectionKL = Math.round(totalMm * 0.85 * 150 / 1000)
-  const buildingTypeCount = config?.building_presets.length ?? 0
+  const roofCollectionKL = Math.round(
+    totalMm * config.defaults.collection_efficiency * EXAMPLE_ROOF_M2 / 1000,
+  )
+  const buildingTypeCount = config.building_presets.length
 
   return { totalMm, longestDryDays: maxDry, roofCollectionKL, buildingTypeCount }
 }
@@ -35,7 +40,7 @@ export default function Home() {
   })
 
   const stats = useMemo(
-    () => (observations ? computeStats(observations, config) : null),
+    () => (observations && config ? computeStats(observations, config) : null),
     [observations, config],
   )
 

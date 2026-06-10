@@ -8,6 +8,11 @@ projected climate data, as recommended in the framework (15-20% margins).
 import pandas as pd
 import numpy as np
 
+# Days below this are "dry" when detecting spells
+DRY_DAY_THRESHOLD_MM = 1.0
+# Spell extension only converts light-rain days — heavy rain days are kept
+LIGHT_RAIN_THRESHOLD_MM = 5.0
+
 SCENARIOS = {
     "historical": {
         "label": "Historisk (ingen endring)",
@@ -54,14 +59,14 @@ def apply_climate_projection(df, scenario="moderate"):
     df = df.sort_values("date").reset_index(drop=True)
 
     # Step 1: Increase intensity on rainy days
-    rainy_mask = df["precipitation_mm"] >= 1.0
+    rainy_mask = df["precipitation_mm"] >= DRY_DAY_THRESHOLD_MM
     df.loc[rainy_mask, "precipitation_mm"] = (
         df.loc[rainy_mask, "precipitation_mm"] * intensity_factor
     )
 
     # Step 2: Extend dry spells by converting light-rain days at spell edges to dry
     # Identify dry spells (< 1mm)
-    df["dry"] = df["precipitation_mm"] < 1.0
+    df["dry"] = df["precipitation_mm"] < DRY_DAY_THRESHOLD_MM
     df["spell_id"] = (~df["dry"]).cumsum()
 
     extension_ratio = dry_spell_factor - 1.0  # e.g., 0.15 for moderate
@@ -74,7 +79,7 @@ def apply_climate_projection(df, scenario="moderate"):
         last_idx = group.index[-1]
         for i in range(1, extend_by + 1):
             target_idx = last_idx + i
-            if target_idx < len(df) and df.loc[target_idx, "precipitation_mm"] < 5.0:
+            if target_idx < len(df) and df.loc[target_idx, "precipitation_mm"] < LIGHT_RAIN_THRESHOLD_MM:
                 # Only convert light rain days, not heavy rain days
                 df.loc[target_idx, "precipitation_mm"] = 0.0
 
@@ -97,11 +102,11 @@ def compare_scenarios(df, scenarios=None):
         params = SCENARIOS[scenario_key]
 
         total_precip = adjusted["precipitation_mm"].sum()
-        dry_days = (adjusted["precipitation_mm"] < 1.0).sum()
+        dry_days = (adjusted["precipitation_mm"] < DRY_DAY_THRESHOLD_MM).sum()
 
         # Calculate longest dry spell
         adjusted_sorted = adjusted.sort_values("date")
-        is_dry = adjusted_sorted["precipitation_mm"] < 1.0
+        is_dry = adjusted_sorted["precipitation_mm"] < DRY_DAY_THRESHOLD_MM
         spell_groups = (~is_dry).cumsum()
         dry_spells = is_dry.groupby(spell_groups).sum()
         longest_dry = int(dry_spells.max()) if not dry_spells.empty else 0

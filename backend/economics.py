@@ -73,6 +73,22 @@ def find_best_estimate(population):
     return COST_ESTIMATES[-1]
 
 
+def choose_estimate(scale, population):
+    """Choose the cost tier for a request combining scale and population.
+
+    A population that falls inside a tier's capacity range wins; otherwise
+    the scale's default tier is used (an out-of-range population says less
+    about the system than the chosen scale does).
+
+    Raises KeyError if `scale` is unknown.
+    """
+    scale_default = estimate_for_scale(scale)
+    for est in COST_ESTIMATES:
+        if est.capacity_low <= population <= est.capacity_high:
+            return est
+    return scale_default
+
+
 def interpolate_cost(population, est):
     """Interpolate within a cost estimate tier based on population.
 

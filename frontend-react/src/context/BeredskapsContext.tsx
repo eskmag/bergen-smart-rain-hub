@@ -55,6 +55,8 @@ export function BeredskapsProvider({
   initialPopulation = 4,
   initialTankLiters = 5000,
   initialScale = 'household',
+  // matches the 'enebolig' preset (BUILDING_PRESETS in backend/analysis.py);
+  // replaced as soon as the user picks a building type
   initialHeightM = 6,
 }: BeredskapsProviderProps) {
   const [buildingKey, setBuildingKey] = useState('enebolig')
@@ -72,7 +74,7 @@ export function BeredskapsProvider({
 
   useEffect(() => {
     const buildings = Array.from({ length: numBuildings }, (_, i) => ({
-      label: `Bygg ${i + 1}`,
+      name: `Bygg ${i + 1}`,
       roof_area_m2: roofPerBuilding,
       height_m: heightM,
     }))

@@ -1,15 +1,14 @@
 import { Link } from 'react-router-dom'
-import {
-  AreaChart, Area, XAxis, YAxis,
-  CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer,
-} from 'recharts'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../../api/client'
 import { useTakkart } from '../../context/TakkartContext'
+import SimulationChart from '../shared/SimulationChart'
+import DrySpellsList from '../shared/DrySpellsList'
 import {
   annualCollectionLiters,
   emergencyDays,
   supplyStatus,
   tankRecommendations,
-  WHO_L_PER_PERSON_PER_DAY,
 } from '../../lib/rainwater'
 
 function fmt(n: number) {
@@ -25,6 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function TakkartResultPanel() {
   const { roofAreaM2, numPeople, setNumPeople, simResult, isSimPending } = useTakkart()
+  const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
 
   if (roofAreaM2 === null) {
     return (
@@ -41,20 +41,25 @@ export default function TakkartResultPanel() {
     )
   }
 
-  const annualL = annualCollectionLiters(roofAreaM2)
-  const days = emergencyDays(annualL, numPeople)
+  if (!config) {
+    return (
+      <div className="t-result-panel t-result-empty">
+        <p className="t-empty-text">Lastar…</p>
+      </div>
+    )
+  }
+
+  const lPerDay = config.water_needs['survival_total']
+  const annualL = annualCollectionLiters(roofAreaM2, config.defaults)
+  const days = emergencyDays(annualL, numPeople, lPerDay)
   const status = supplyStatus(days)
-  const tanks = tankRecommendations(numPeople)
+  const tanks = tankRecommendations(numPeople, lPerDay, config.defaults.tank_recommendation_days)
   const dailyAvg = annualL / 365
-  const dailyNeed = numPeople * WHO_L_PER_PERSON_PER_DAY
+  const dailyNeed = numPeople * lPerDay
 
   function handlePeopleStep(delta: number) {
     setNumPeople(Math.max(1, numPeople + delta))
   }
-
-  const spells = [...(simResult?.dry_spells ?? [])].sort((a, b) => b.days - a.days)
-  const maxDryDays = spells[0]?.days ?? 1
-  const topSpells = spells.slice(0, 3)
 
   return (
     <div className="t-result-panel">
@@ -95,7 +100,7 @@ export default function TakkartResultPanel() {
           <span className="t-stepper-val">{numPeople}</span>
           <button className="t-stepper-btn" type="button" onClick={() => handlePeopleStep(1)} aria-label="Fleire personar">+</button>
         </div>
-        <span className="t-people-note">{WHO_L_PER_PERSON_PER_DAY} L/pers/dag (WHO)</span>
+        <span className="t-people-note">{lPerDay} L/pers/dag (WHO)</span>
       </div>
 
       {/* Tank recommendations */}
@@ -129,57 +134,22 @@ export default function TakkartResultPanel() {
       {/* Rich simulation (from backend) */}
       {(simResult || isSimPending) && (
         <>
-          <div className="t-chart-card">
-            <div className="t-chart-header">
-              <span className="t-chart-title">Tanknivå gjennom året</span>
-              <div className="t-chart-legend">
-                <div className="t-legend-item"><div className="t-legend-dot" style={{ background: '#BFDBF7' }} />Tanknivå</div>
-                <div className="t-legend-item"><div className="t-legend-dot" style={{ background: '#C1440E' }} />Kritisk 20 %</div>
-              </div>
-            </div>
-            {isSimPending && !simResult ? (
-              <p className="t-placeholder">Simulerer…</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={160}>
-                <AreaChart data={simResult!.simulation_series} margin={{ top: 5, right: 6, left: -18, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#EDF0F3" />
-                  <XAxis dataKey="date" tickFormatter={d => d.slice(5)} tick={{ fontSize: 10 }} minTickGap={40} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} unit="%" />
-                  <Tooltip
-                    formatter={v => [`${Number(v).toFixed(1)} %`, 'Tanknivå']}
-                    labelFormatter={l => `Dato: ${l}`}
-                  />
-                  <ReferenceLine y={20} stroke="#C1440E" strokeDasharray="4 4" />
-                  <Area type="monotone" dataKey="tank_pct" stroke="var(--color-primary)" fill="#BFDBF7" fillOpacity={0.6} dot={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
+          <SimulationChart
+            series={simResult?.simulation_series}
+            loading={isSimPending && !simResult}
+            classPrefix="t"
+          />
 
-          {topSpells.length > 0 && (
-            <div className="t-dry-spells-card">
-              <div className="t-ds-header">
-                <span className="t-ds-title">Sårbare periodar</span>
-                <span className="t-ds-badge">{spells.length} tørkeperiodar</span>
-              </div>
-              {topSpells.map((s, i) => (
-                <div className="t-ds-row" key={i}>
-                  <div>
-                    <div className="t-ds-days">{s.days} dagar</div>
-                    <div className="t-ds-dates">{s.start} — {s.end}</div>
-                  </div>
-                  <div className="t-ds-bar-wrap">
-                    <div className="t-ds-bar">
-                      <div className="t-ds-bar-fill" style={{ width: `${(s.days / maxDryDays) * 100}%` }} />
-                    </div>
-                  </div>
-                  {i === 0
-                    ? <div className="t-ds-tag-longest">Lengste</div>
-                    : <div className="t-ds-tag-muted">–</div>}
-                </div>
-              ))}
-            </div>
-          )}
+          <DrySpellsList
+            spells={simResult?.dry_spells}
+            classPrefix="t"
+            hideWhenEmpty
+            labels={{
+              title: 'Sårbare periodar',
+              badge: n => `${n} tørkeperiodar`,
+              days: n => `${n} dagar`,
+            }}
+          />
         </>
       )}
     </div>

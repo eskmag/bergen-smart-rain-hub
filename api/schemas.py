@@ -4,6 +4,13 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from backend.analysis import (
+    BERGEN_ANNUAL_RAINFALL_MM,
+    DEFAULT_BUILDING_HEIGHT_M,
+    DEFAULT_COLLECTION_EFFICIENCY,
+    TANK_RECOMMENDATION_DAYS,
+)
+
 
 # ── Config ──────────────────────────────────────────────────────────────────
 
@@ -45,6 +52,15 @@ class ClimateScenario(BaseModel):
     dry_spell_factor: float
 
 
+class ConfigDefaults(BaseModel):
+    """Shared domain defaults — the frontend reads these instead of
+    hardcoding mirrors of backend constants."""
+    collection_efficiency: float = DEFAULT_COLLECTION_EFFICIENCY
+    building_height_m: float = DEFAULT_BUILDING_HEIGHT_M
+    annual_rainfall_mm: float = BERGEN_ANNUAL_RAINFALL_MM
+    tank_recommendation_days: list[int] = list(TANK_RECOMMENDATION_DAYS)
+
+
 class ConfigResponse(BaseModel):
     scales: list[ScaleSchema]
     scale_presets: dict[str, list[str]]
@@ -52,6 +68,7 @@ class ConfigResponse(BaseModel):
     infrastructure_facilities: list[InfrastructureFacility]
     climate_scenarios: list[ClimateScenario]
     water_needs: dict[str, float]
+    defaults: ConfigDefaults
 
 
 # ── Observations ─────────────────────────────────────────────────────────────
@@ -65,16 +82,16 @@ class Observation(BaseModel):
 # ── Beredskap simulation ──────────────────────────────────────────────────────
 
 class BuildingInput(BaseModel):
-    label: str
+    name: str
     roof_area_m2: float
-    height_m: float = 5.0
+    height_m: float = DEFAULT_BUILDING_HEIGHT_M
 
 
 class BeredskapsRequest(BaseModel):
     buildings: list[BuildingInput]
     tank_liters: int
     population: int
-    efficiency: float = 0.85
+    efficiency: float = DEFAULT_COLLECTION_EFFICIENCY
     usage_level: str = "survival_total"
     climate_scenario: str = "historical"
 
