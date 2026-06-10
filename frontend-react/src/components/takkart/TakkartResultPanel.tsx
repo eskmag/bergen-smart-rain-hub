@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import {
   AreaChart, Area, XAxis, YAxis,
   CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer,
@@ -109,6 +110,20 @@ export default function TakkartResultPanel() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* CTA: send measured roof to full simulator */}
+      <div className="t-cta-section">
+        <Link
+          to={`/beregn?areal=${Math.round(roofAreaM2)}`}
+          className="t-cta-btn"
+        >
+          Simuler med dette taket
+          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </Link>
+        <p className="t-cta-note">Åpnar beredskapssimulering med {Math.round(roofAreaM2)} m² forhåndsutfylt</p>
       </div>
 
       {/* Rich simulation (from backend) */}

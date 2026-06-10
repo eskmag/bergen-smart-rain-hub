@@ -426,6 +426,37 @@
 
 .t-tank-opt-days { font-size: 11px; color: var(--t-muted); }
 
+/* CTA to full simulator */
+.t-cta-section {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--t-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.t-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--t-blue);
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  transition: background 0.15s;
+  width: fit-content;
+}
+.t-cta-btn:hover { background: var(--t-blue-dark); }
+
+.t-cta-note {
+  font-size: 12px;
+  color: var(--t-muted);
+  margin: 0;
+}
+
 /* Chart */
 .t-chart-card {
   padding: 1.5rem 2rem;
