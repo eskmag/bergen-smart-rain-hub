@@ -1,15 +1,17 @@
-export const ANNUAL_RAINFALL_MM = 2250
-export const DEFAULT_EFFICIENCY = 0.85
-export const WHO_L_PER_PERSON_PER_DAY = 13
+// Domain helpers for quick client-side estimates. Domain constants
+// (rainfall, efficiency, water needs, tank tiers) come from /api/config —
+// nothing load-bearing is hardcoded here.
+
+import type { ConfigDefaults } from '../api/client'
 
 // V (L) = A (m²) × R (mm) × C; mm/1000 → m³, ×1000 → L cancel out
-export function annualCollectionLiters(roofM2: number, efficiency = DEFAULT_EFFICIENCY): number {
-  return roofM2 * ANNUAL_RAINFALL_MM * efficiency
+export function annualCollectionLiters(roofM2: number, defaults: ConfigDefaults): number {
+  return roofM2 * defaults.annual_rainfall_mm * defaults.collection_efficiency
 }
 
-// Days the annual harvest can supply: annualL / (people × 13 L/day)
-export function emergencyDays(annualL: number, people: number): number {
-  return Math.floor(annualL / (people * WHO_L_PER_PERSON_PER_DAY))
+// Days the annual harvest can supply: annualL / (people × L/person/day)
+export function emergencyDays(annualL: number, people: number, lPerPersonPerDay: number): number {
+  return Math.floor(annualL / (people * lPerPersonPerDay))
 }
 
 export type SupplyStatus = 'excellent' | 'good' | 'moderate' | 'low'
@@ -22,29 +24,22 @@ export function supplyStatus(days: number): SupplyStatus {
 }
 
 export interface TankRec {
-  label: 'Minimum' | 'Anbefalt' | 'Robust'
-  days: 7 | 30 | 60
+  label: string
+  days: number
   liters: number
 }
 
-export function tankRecommendations(people: number): TankRec[] {
-  const dailyNeed = people * WHO_L_PER_PERSON_PER_DAY
+const TANK_REC_LABELS = ['Minimum', 'Anbefalt', 'Robust']
 
-  return [
-    {
-      label: 'Minimum',
-      days: 7,
-      liters: Math.ceil((dailyNeed * 7) / 100) * 100,
-    },
-    {
-      label: 'Anbefalt',
-      days: 30,
-      liters: Math.ceil((dailyNeed * 30) / 100) * 100,
-    },
-    {
-      label: 'Robust',
-      days: 60,
-      liters: Math.ceil((dailyNeed * 60) / 100) * 100,
-    },
-  ]
+export function tankRecommendations(
+  people: number,
+  lPerPersonPerDay: number,
+  days: number[],
+): TankRec[] {
+  const dailyNeed = people * lPerPersonPerDay
+  return days.map((d, i) => ({
+    label: TANK_REC_LABELS[i] ?? `${d} dagar`,
+    days: d,
+    liters: Math.ceil((dailyNeed * d) / 100) * 100,
+  }))
 }

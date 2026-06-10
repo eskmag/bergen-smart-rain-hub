@@ -16,14 +16,12 @@ function stepFor(v: number) {
   return 25
 }
 
+// Slider bounds — pure UI constraints, not domain values
 const TANK_MIN = 500
 const TANK_MAX = 100000
 
-const TANK_PRESETS = [
-  { label: '1 uke', days: 7 },
-  { label: '30 dager', days: 30 },
-  { label: '2 mnd', days: 60 },
-] as const
+// Labels for the tank tiers served by /api/config (defaults.tank_recommendation_days)
+const TANK_PRESET_LABELS = ['1 uke', '30 dager', '2 mnd']
 
 function clampTank(v: number) {
   return Math.min(TANK_MAX, Math.max(TANK_MIN, Math.round(v / 500) * 500))
@@ -65,8 +63,13 @@ export default function InputPanel() {
     setPopulation(next)
   }
 
+  const tankPresets = (config?.defaults.tank_recommendation_days ?? []).map((days, i) => ({
+    label: TANK_PRESET_LABELS[i] ?? `${days} dager`,
+    days,
+  }))
+
   const tankPct = ((tankLiters - TANK_MIN) / (TANK_MAX - TANK_MIN)) * 100
-  const activePreset = TANK_PRESETS.find(p => clampTank(dailyNeed * p.days) === tankLiters)
+  const activePreset = tankPresets.find(p => clampTank(dailyNeed * p.days) === tankLiters)
 
   return (
     <div className="k-input-panel">
@@ -129,7 +132,7 @@ export default function InputPanel() {
           <span>{fmt(TANK_MAX)} L</span>
         </div>
         <div className="k-tank-presets">
-          {TANK_PRESETS.map(p => (
+          {tankPresets.map(p => (
             <button
               key={p.label}
               className={`k-tank-preset${activePreset?.label === p.label ? ' active' : ''}`}

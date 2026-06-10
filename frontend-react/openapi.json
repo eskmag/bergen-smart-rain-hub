@@ -1,0 +1,891 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Bergen Smart Rain Hub API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/config": {
+      "get": {
+        "summary": "Get Config",
+        "operationId": "get_config_api_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfigResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/observations": {
+      "get": {
+        "summary": "Get Obs",
+        "operationId": "get_obs_api_observations_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3650,
+              "minimum": 1,
+              "default": 365,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Observation"
+                  },
+                  "title": "Response Get Obs Api Observations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/simulate/beredskap": {
+      "post": {
+        "summary": "Simulate Beredskap",
+        "operationId": "simulate_beredskap_api_simulate_beredskap_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeredskapsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeredskapsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/costs": {
+      "get": {
+        "summary": "Get Costs",
+        "operationId": "get_costs_api_costs_get",
+        "parameters": [
+          {
+            "name": "population",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Population"
+            }
+          },
+          {
+            "name": "scale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "household",
+              "title": "Scale"
+            }
+          },
+          {
+            "name": "annual_liters",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "default": 0,
+              "title": "Annual Liters"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CostsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BeredskapsRequest": {
+        "properties": {
+          "buildings": {
+            "items": {
+              "$ref": "#/components/schemas/BuildingInput"
+            },
+            "type": "array",
+            "title": "Buildings"
+          },
+          "tank_liters": {
+            "type": "integer",
+            "title": "Tank Liters"
+          },
+          "population": {
+            "type": "integer",
+            "title": "Population"
+          },
+          "efficiency": {
+            "type": "number",
+            "title": "Efficiency",
+            "default": 0.85
+          },
+          "usage_level": {
+            "type": "string",
+            "title": "Usage Level",
+            "default": "survival_total"
+          },
+          "climate_scenario": {
+            "type": "string",
+            "title": "Climate Scenario",
+            "default": "historical"
+          }
+        },
+        "type": "object",
+        "required": [
+          "buildings",
+          "tank_liters",
+          "population"
+        ],
+        "title": "BeredskapsRequest"
+      },
+      "BeredskapsResponse": {
+        "properties": {
+          "summary": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Summary"
+          },
+          "simulation_series": {
+            "items": {
+              "$ref": "#/components/schemas/SimulationRow"
+            },
+            "type": "array",
+            "title": "Simulation Series"
+          },
+          "dry_spells": {
+            "items": {
+              "$ref": "#/components/schemas/DrySpell"
+            },
+            "type": "array",
+            "title": "Dry Spells"
+          },
+          "scenario_comparison": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ScenarioComparison"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario Comparison"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary",
+          "simulation_series",
+          "dry_spells"
+        ],
+        "title": "BeredskapsResponse"
+      },
+      "BuildingInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "roof_area_m2": {
+            "type": "number",
+            "title": "Roof Area M2"
+          },
+          "height_m": {
+            "type": "number",
+            "title": "Height M",
+            "default": 5.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "roof_area_m2"
+        ],
+        "title": "BuildingInput"
+      },
+      "BuildingPreset": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "roof_area_m2": {
+            "type": "integer",
+            "title": "Roof Area M2"
+          },
+          "default_people": {
+            "type": "integer",
+            "title": "Default People"
+          },
+          "height_m": {
+            "type": "number",
+            "title": "Height M"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "roof_area_m2",
+          "default_people",
+          "height_m",
+          "description"
+        ],
+        "title": "BuildingPreset"
+      },
+      "ClimateScenario": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "intensity_factor": {
+            "type": "number",
+            "title": "Intensity Factor"
+          },
+          "dry_spell_factor": {
+            "type": "number",
+            "title": "Dry Spell Factor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "description",
+          "intensity_factor",
+          "dry_spell_factor"
+        ],
+        "title": "ClimateScenario"
+      },
+      "ConfigDefaults": {
+        "properties": {
+          "collection_efficiency": {
+            "type": "number",
+            "title": "Collection Efficiency",
+            "default": 0.85
+          },
+          "building_height_m": {
+            "type": "number",
+            "title": "Building Height M",
+            "default": 5.0
+          },
+          "annual_rainfall_mm": {
+            "type": "number",
+            "title": "Annual Rainfall Mm",
+            "default": 2250
+          },
+          "tank_recommendation_days": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Tank Recommendation Days",
+            "default": [
+              7,
+              30,
+              60
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ConfigDefaults",
+        "description": "Shared domain defaults — the frontend reads these instead of\nhardcoding mirrors of backend constants."
+      },
+      "ConfigResponse": {
+        "properties": {
+          "scales": {
+            "items": {
+              "$ref": "#/components/schemas/ScaleSchema"
+            },
+            "type": "array",
+            "title": "Scales"
+          },
+          "scale_presets": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Scale Presets"
+          },
+          "building_presets": {
+            "items": {
+              "$ref": "#/components/schemas/BuildingPreset"
+            },
+            "type": "array",
+            "title": "Building Presets"
+          },
+          "infrastructure_facilities": {
+            "items": {
+              "$ref": "#/components/schemas/InfrastructureFacility"
+            },
+            "type": "array",
+            "title": "Infrastructure Facilities"
+          },
+          "climate_scenarios": {
+            "items": {
+              "$ref": "#/components/schemas/ClimateScenario"
+            },
+            "type": "array",
+            "title": "Climate Scenarios"
+          },
+          "water_needs": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Water Needs"
+          },
+          "defaults": {
+            "$ref": "#/components/schemas/ConfigDefaults"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scales",
+          "scale_presets",
+          "building_presets",
+          "infrastructure_facilities",
+          "climate_scenarios",
+          "water_needs",
+          "defaults"
+        ],
+        "title": "ConfigResponse"
+      },
+      "CostBreakdownItem": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "amount": {
+            "type": "integer",
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "amount"
+        ],
+        "title": "CostBreakdownItem"
+      },
+      "CostEstimateRow": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "capital_low": {
+            "type": "integer",
+            "title": "Capital Low"
+          },
+          "capital_high": {
+            "type": "integer",
+            "title": "Capital High"
+          },
+          "annual_operating_low": {
+            "type": "integer",
+            "title": "Annual Operating Low"
+          },
+          "annual_operating_high": {
+            "type": "integer",
+            "title": "Annual Operating High"
+          },
+          "capacity_low": {
+            "type": "integer",
+            "title": "Capacity Low"
+          },
+          "capacity_high": {
+            "type": "integer",
+            "title": "Capacity High"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "capital_low",
+          "capital_high",
+          "annual_operating_low",
+          "annual_operating_high",
+          "capacity_low",
+          "capacity_high"
+        ],
+        "title": "CostEstimateRow"
+      },
+      "CostsResponse": {
+        "properties": {
+          "estimate_label": {
+            "type": "string",
+            "title": "Estimate Label"
+          },
+          "capital_low": {
+            "type": "integer",
+            "title": "Capital Low"
+          },
+          "capital_high": {
+            "type": "integer",
+            "title": "Capital High"
+          },
+          "annual_op_low": {
+            "type": "integer",
+            "title": "Annual Op Low"
+          },
+          "annual_op_high": {
+            "type": "integer",
+            "title": "Annual Op High"
+          },
+          "capital": {
+            "type": "integer",
+            "title": "Capital"
+          },
+          "annual_op": {
+            "type": "integer",
+            "title": "Annual Op"
+          },
+          "cost_per_person": {
+            "type": "number",
+            "title": "Cost Per Person"
+          },
+          "lifecycle_10": {
+            "type": "integer",
+            "title": "Lifecycle 10"
+          },
+          "lifecycle_20": {
+            "type": "integer",
+            "title": "Lifecycle 20"
+          },
+          "lifecycle_30": {
+            "type": "integer",
+            "title": "Lifecycle 30"
+          },
+          "cost_per_liter_20": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Per Liter 20"
+          },
+          "capital_breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/CostBreakdownItem"
+            },
+            "type": "array",
+            "title": "Capital Breakdown"
+          },
+          "operating_breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/CostBreakdownItem"
+            },
+            "type": "array",
+            "title": "Operating Breakdown"
+          },
+          "all_estimates": {
+            "items": {
+              "$ref": "#/components/schemas/CostEstimateRow"
+            },
+            "type": "array",
+            "title": "All Estimates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "estimate_label",
+          "capital_low",
+          "capital_high",
+          "annual_op_low",
+          "annual_op_high",
+          "capital",
+          "annual_op",
+          "cost_per_person",
+          "lifecycle_10",
+          "lifecycle_20",
+          "lifecycle_30",
+          "cost_per_liter_20",
+          "capital_breakdown",
+          "operating_breakdown",
+          "all_estimates"
+        ],
+        "title": "CostsResponse"
+      },
+      "DrySpell": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "title": "End"
+          },
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "total_rain_mm": {
+            "type": "number",
+            "title": "Total Rain Mm"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "days",
+          "total_rain_mm"
+        ],
+        "title": "DrySpell"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InfrastructureFacility": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "roof_area_m2": {
+            "type": "integer",
+            "title": "Roof Area M2"
+          },
+          "default_people": {
+            "type": "integer",
+            "title": "Default People"
+          },
+          "height_m": {
+            "type": "number",
+            "title": "Height M"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "roof_area_m2",
+          "default_people",
+          "height_m",
+          "description"
+        ],
+        "title": "InfrastructureFacility"
+      },
+      "Observation": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "precipitation_mm": {
+            "type": "number",
+            "title": "Precipitation Mm"
+          },
+          "air_temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Air Temperature C"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "precipitation_mm"
+        ],
+        "title": "Observation"
+      },
+      "ScaleSchema": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "typical_population": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Typical Population"
+          },
+          "typical_tank_liters": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Typical Tank Liters"
+          },
+          "typical_buildings": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Typical Buildings"
+          },
+          "treatment_level": {
+            "type": "string",
+            "title": "Treatment Level"
+          },
+          "governance_note": {
+            "type": "string",
+            "title": "Governance Note"
+          },
+          "cost_range_nok": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Cost Range Nok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "description",
+          "typical_population",
+          "typical_tank_liters",
+          "typical_buildings",
+          "treatment_level",
+          "governance_note",
+          "cost_range_nok"
+        ],
+        "title": "ScaleSchema"
+      },
+      "ScenarioComparison": {
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "title": "Scenario"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "total_precip_mm": {
+            "type": "number",
+            "title": "Total Precip Mm"
+          },
+          "dry_days": {
+            "type": "integer",
+            "title": "Dry Days"
+          },
+          "longest_dry_spell": {
+            "type": "integer",
+            "title": "Longest Dry Spell"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenario",
+          "label",
+          "total_precip_mm",
+          "dry_days",
+          "longest_dry_spell"
+        ],
+        "title": "ScenarioComparison"
+      },
+      "SimulationRow": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "precipitation_mm": {
+            "type": "number",
+            "title": "Precipitation Mm"
+          },
+          "tank_pct": {
+            "type": "number",
+            "title": "Tank Pct"
+          },
+          "tank_level_liters": {
+            "type": "number",
+            "title": "Tank Level Liters"
+          },
+          "days_remaining": {
+            "type": "number",
+            "title": "Days Remaining"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "precipitation_mm",
+          "tank_pct",
+          "tank_level_liters",
+          "days_remaining"
+        ],
+        "title": "SimulationRow"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

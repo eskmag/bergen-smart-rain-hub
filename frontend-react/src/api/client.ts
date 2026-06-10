@@ -1,135 +1,28 @@
 // Typed API client — all fetch calls live here.
+//
+// Types are generated from the FastAPI OpenAPI spec. To regenerate after a
+// backend schema change:
+//   python scripts/export_openapi.py frontend-react/openapi.json
+//   cd frontend-react && npm run generate:api
 
-export interface ScaleSchema {
-  key: string
-  label: string
-  description: string
-  typical_population: number[]
-  typical_tank_liters: number[]
-  typical_buildings: number[]
-  treatment_level: string
-  governance_note: string
-  cost_range_nok: number[]
-}
+import type { components } from './schema'
 
-export interface BuildingPreset {
-  key: string
-  label: string
-  roof_area_m2: number
-  default_people: number
-  height_m: number
-  description: string
-}
-
-export interface InfrastructureFacility {
-  key: string
-  label: string
-  roof_area_m2: number
-  default_people: number
-  height_m: number
-  description: string
-}
-
-export interface ClimateScenario {
-  key: string
-  label: string
-  description: string
-  intensity_factor: number
-  dry_spell_factor: number
-}
-
-export interface ConfigResponse {
-  scales: ScaleSchema[]
-  scale_presets: Record<string, string[]>
-  building_presets: BuildingPreset[]
-  infrastructure_facilities: InfrastructureFacility[]
-  climate_scenarios: ClimateScenario[]
-  water_needs: Record<string, number>
-}
-
-export interface Observation {
-  date: string
-  precipitation_mm: number
-  air_temperature_c: number | null
-}
-
-export interface BuildingInput {
-  label: string
-  roof_area_m2: number
-  height_m: number
-}
-
-export interface BeredskapsRequest {
-  buildings: BuildingInput[]
-  tank_liters: number
-  population: number
-  efficiency: number
-  usage_level: string
-  climate_scenario: string
-}
-
-export interface SimulationRow {
-  date: string
-  precipitation_mm: number
-  tank_pct: number
-  tank_level_liters: number
-  days_remaining: number
-}
-
-export interface DrySpell {
-  start: string
-  end: string
-  days: number
-  total_rain_mm: number
-}
-
-export interface ScenarioComparison {
-  scenario: string
-  label: string
-  total_precip_mm: number
-  dry_days: number
-  longest_dry_spell: number
-}
-
-export interface BeredskapsResponse {
-  summary: Record<string, number>
-  simulation_series: SimulationRow[]
-  dry_spells: DrySpell[]
-  scenario_comparison: ScenarioComparison[] | null
-}
-
-export interface CostEstimateRow {
-  label: string
-  capital_low: number
-  capital_high: number
-  annual_operating_low: number
-  annual_operating_high: number
-  capacity_low: number
-  capacity_high: number
-}
-
-export interface CostBreakdownItem {
-  category: string
-  amount: number
-}
-
-export interface CostsResponse {
-  estimate_label: string
-  capital_low: number
-  capital_high: number
-  annual_op_low: number
-  annual_op_high: number
-  capital: number
-  annual_op: number
-  cost_per_person: number
-  lifecycle_10: number
-  lifecycle_20: number
-  lifecycle_30: number
-  cost_per_liter_20: number | null
-  capital_breakdown: CostBreakdownItem[]
-  operating_breakdown: CostBreakdownItem[]
-  all_estimates: CostEstimateRow[]
-}
+export type ScaleSchema = components['schemas']['ScaleSchema']
+export type BuildingPreset = components['schemas']['BuildingPreset']
+export type InfrastructureFacility = components['schemas']['InfrastructureFacility']
+export type ClimateScenario = components['schemas']['ClimateScenario']
+export type ConfigDefaults = components['schemas']['ConfigDefaults']
+export type ConfigResponse = components['schemas']['ConfigResponse']
+export type Observation = components['schemas']['Observation']
+export type BuildingInput = components['schemas']['BuildingInput']
+export type BeredskapsRequest = components['schemas']['BeredskapsRequest']
+export type SimulationRow = components['schemas']['SimulationRow']
+export type DrySpell = components['schemas']['DrySpell']
+export type ScenarioComparison = components['schemas']['ScenarioComparison']
+export type BeredskapsResponse = components['schemas']['BeredskapsResponse']
+export type CostEstimateRow = components['schemas']['CostEstimateRow']
+export type CostBreakdownItem = components['schemas']['CostBreakdownItem']
+export type CostsResponse = components['schemas']['CostsResponse']
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, init)
