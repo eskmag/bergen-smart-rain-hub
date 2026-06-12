@@ -20,6 +20,8 @@ interface BeredskapsState {
   setUsageLevel: (v: string) => void
   scenario: string
   setScenario: (v: string) => void
+  roofMaterial: string
+  setRoofMaterial: (v: string) => void
   scale: string
   setScale: (v: string) => void
   heightM: number
@@ -67,6 +69,7 @@ export function BeredskapsProvider({
   const [efficiency, setEfficiency] = useState(85)
   const [usageLevel, setUsageLevel] = useState('survival_total')
   const [scenario, setScenario] = useState('historical')
+  const [roofMaterial, setRoofMaterial] = useState('takstein')
   const [scale, setScale] = useState(initialScale)
   const [heightM, setHeightM] = useState(initialHeightM)
 
@@ -106,6 +109,7 @@ export function BeredskapsProvider({
       efficiency, setEfficiency,
       usageLevel, setUsageLevel,
       scenario, setScenario,
+      roofMaterial, setRoofMaterial,
       scale, setScale,
       heightM, setHeightM,
       simResult,

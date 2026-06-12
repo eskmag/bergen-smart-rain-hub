@@ -23,6 +23,8 @@ export type BeredskapsResponse = components['schemas']['BeredskapsResponse']
 export type CostEstimateRow = components['schemas']['CostEstimateRow']
 export type CostBreakdownItem = components['schemas']['CostBreakdownItem']
 export type CostsResponse = components['schemas']['CostsResponse']
+export type RoofMaterial = components['schemas']['RoofMaterial']
+export type TreatmentResponse = components['schemas']['TreatmentResponse']
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, init)
@@ -50,4 +52,7 @@ export const api = {
     apiFetch<CostsResponse>(
       `/api/costs?population=${population}&scale=${scale}&annual_liters=${annualLiters}`,
     ),
+
+  treatment: (material: string, scale: string) =>
+    apiFetch<TreatmentResponse>(`/api/treatment?material=${material}&scale=${scale}`),
 }

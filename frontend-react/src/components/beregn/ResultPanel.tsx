@@ -3,6 +3,7 @@ import { api } from '../../api/client'
 import { useBeredskap } from '../../context/BeredskapsContext'
 import SimulationChart from '../shared/SimulationChart'
 import DrySpellsList from '../shared/DrySpellsList'
+import { WaterQualityCard } from '../shared/WaterQualityCard'
 import { BUILDING_OPTIONS } from './buildingTypes'
 
 function fmt(n: number, decimals = 0) {
@@ -19,7 +20,7 @@ export default function ResultPanel() {
   const {
     buildingKey,
     simResult, isSimPending,
-    population, scale, annualLiters, usageLevel,
+    population, scale, annualLiters, usageLevel, roofMaterial,
   } = useBeredskap()
 
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
@@ -137,6 +138,9 @@ export default function ResultPanel() {
           empty: 'Ingen lengre tørkeperioder funnet.',
         }}
       />
+
+      {/* Water quality */}
+      <WaterQualityCard material={roofMaterial} scale={scale} prefix="k" />
 
       {/* Data note */}
       <div className="k-data-note">

@@ -36,6 +36,7 @@ export default function InputPanel() {
     tankLiters, setTankLiters,
     efficiency, setEfficiency,
     usageLevel, setUsageLevel,
+    roofMaterial, setRoofMaterial,
   } = useBeredskap()
 
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
@@ -175,6 +176,18 @@ export default function InputPanel() {
             >
               <option value="survival_total">Beredskap ({config?.water_needs?.['survival_total'] ?? 13} L/p/dag)</option>
               <option value="normal_usage">Normal ({config?.water_needs?.['normal_usage'] ?? 150} L/p/dag)</option>
+            </select>
+          </div>
+          <div className="k-adv-row">
+            <div className="k-adv-label"><span>Takmateriale</span></div>
+            <select
+              className="k-adv-select"
+              value={roofMaterial}
+              onChange={e => setRoofMaterial(e.target.value)}
+            >
+              {(config?.roof_materials ?? []).map(m => (
+                <option key={m.key} value={m.key}>{m.label}</option>
+              ))}
             </select>
           </div>
         </div>
