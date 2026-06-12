@@ -16,6 +16,15 @@ DB_PATH = str(PROJECT_ROOT / "data" / "rain.db")
 
 # Frost API
 DEFAULT_STATION_ID = "SN50540"
+
+# Verified Frost stations with daily precipitation coverage in Bergen
+# (checked against /sources and the observations endpoint, 2026-06-12).
+# Keys must match Frost source IDs exactly.
+STATIONS = {
+    "SN50540": {"label": "Bergen — Florida", "note": "Sentrum, referansestasjon (1949–)"},
+    "SN50500": {"label": "Bergen — Flesland", "note": "Lufthavn, sørvest (1955–)"},
+    "SN50450": {"label": "Fana — Stend", "note": "Sør, lengst måleserie (1896–)"},
+}
 FROST_CLIENT_ID = os.getenv("CLIENT_ID")
 FROST_CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 FROST_API_ENDPOINT = os.getenv("FROST_API_ENDPOINT")
