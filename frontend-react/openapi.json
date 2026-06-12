@@ -39,6 +39,16 @@
               "default": 365,
               "title": "Days"
             }
+          },
+          {
+            "name": "station",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "SN50540",
+              "title": "Station"
+            }
           }
         ],
         "responses": {
@@ -251,6 +261,11 @@
             "type": "string",
             "title": "Climate Scenario",
             "default": "historical"
+          },
+          "station": {
+            "type": "string",
+            "title": "Station",
+            "default": "SN50540"
           }
         },
         "type": "object",
@@ -427,6 +442,11 @@
               30,
               60
             ]
+          },
+          "station_id": {
+            "type": "string",
+            "title": "Station Id",
+            "default": "SN50540"
           }
         },
         "type": "object",
@@ -489,6 +509,13 @@
             },
             "type": "array",
             "title": "Roof Materials"
+          },
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/StationSchema"
+            },
+            "type": "array",
+            "title": "Stations"
           }
         },
         "type": "object",
@@ -500,7 +527,8 @@
           "climate_scenarios",
           "water_needs",
           "defaults",
-          "roof_materials"
+          "roof_materials",
+          "stations"
         ],
         "title": "ConfigResponse"
       },
@@ -930,6 +958,29 @@
           "days_remaining"
         ],
         "title": "SimulationRow"
+      },
+      "StationSchema": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "note"
+        ],
+        "title": "StationSchema"
       },
       "TreatmentResponse": {
         "properties": {

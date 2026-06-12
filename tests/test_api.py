@@ -41,6 +41,17 @@ def seeded_db(tmp_path, monkeypatch):
         for i in range(60)
     ]
     store_observations(conn, pd.DataFrame(rows))
+    # Also seed SN50500 so station-selection tests can use it
+    rows_50500 = [
+        {
+            "station_id": "SN50500",
+            "date": (start + timedelta(days=i)).isoformat(),
+            "precipitation_mm": 0.0 if i % 3 == 0 else 5.0,
+            "air_temperature_c": 7.0,
+        }
+        for i in range(60)
+    ]
+    store_observations(conn, pd.DataFrame(rows_50500))
     conn.close()
     monkeypatch.setattr("api.routers.observations.DB_PATH", db_path)
     monkeypatch.setattr("api.routers.simulate.DB_PATH", db_path)
@@ -200,3 +211,19 @@ class TestTreatmentEndpoint:
         r = client.get("/api/config")
         materials = r.json()["roof_materials"]
         assert any(m["key"] == "takstein" for m in materials)
+
+
+class TestStationSelection:
+    def test_config_includes_stations(self):
+        body = client.get("/api/config").json()
+        assert body["defaults"]["station_id"] == "SN50540"
+        assert any(s["id"] == "SN50540" for s in body["stations"])
+
+    def test_observations_rejects_unknown_station(self):
+        r = client.get("/api/observations?station=SN99999")
+        assert r.status_code == 422
+
+    def test_simulate_accepts_alternate_station(self, seeded_db):
+        req = {**VALID_SIM_REQUEST, "station": "SN50500"}
+        r = client.post("/api/simulate/beredskap", json=req)
+        assert r.status_code == 200

@@ -116,6 +116,11 @@ export interface components {
              * @default historical
              */
             climate_scenario: string;
+            /**
+             * Station
+             * @default SN50540
+             */
+            station: string;
         };
         /** BeredskapsResponse */
         BeredskapsResponse: {
@@ -200,6 +205,11 @@ export interface components {
              *     ]
              */
             tank_recommendation_days: number[];
+            /**
+             * Station Id
+             * @default SN50540
+             */
+            station_id: string;
         };
         /** ConfigResponse */
         ConfigResponse: {
@@ -222,6 +232,8 @@ export interface components {
             defaults: components["schemas"]["ConfigDefaults"];
             /** Roof Materials */
             roof_materials: components["schemas"]["RoofMaterial"][];
+            /** Stations */
+            stations: components["schemas"]["StationSchema"][];
         };
         /** CostBreakdownItem */
         CostBreakdownItem: {
@@ -378,6 +390,15 @@ export interface components {
             /** Days Remaining */
             days_remaining: number;
         };
+        /** StationSchema */
+        StationSchema: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Note */
+            note: string;
+        };
         /** TreatmentResponse */
         TreatmentResponse: {
             /** Material */
@@ -443,6 +464,7 @@ export interface operations {
         parameters: {
             query?: {
                 days?: number;
+                station?: string;
             };
             header?: never;
             path?: never;

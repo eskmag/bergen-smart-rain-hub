@@ -10,9 +10,16 @@ from backend.analysis import (
     DEFAULT_COLLECTION_EFFICIENCY,
     TANK_RECOMMENDATION_DAYS,
 )
+from backend.config import DEFAULT_STATION_ID
 
 
 # ── Config ──────────────────────────────────────────────────────────────────
+
+class StationSchema(BaseModel):
+    id: str
+    label: str
+    note: str
+
 
 class ScaleSchema(BaseModel):
     key: str
@@ -59,6 +66,7 @@ class ConfigDefaults(BaseModel):
     building_height_m: float = DEFAULT_BUILDING_HEIGHT_M
     annual_rainfall_mm: float = BERGEN_ANNUAL_RAINFALL_MM
     tank_recommendation_days: list[int] = list(TANK_RECOMMENDATION_DAYS)
+    station_id: str = DEFAULT_STATION_ID
 
 
 class RoofMaterial(BaseModel):
@@ -77,6 +85,7 @@ class ConfigResponse(BaseModel):
     water_needs: dict[str, float]
     defaults: ConfigDefaults
     roof_materials: list[RoofMaterial]
+    stations: list[StationSchema]
 
 
 # ── Observations ─────────────────────────────────────────────────────────────
@@ -102,6 +111,7 @@ class BeredskapsRequest(BaseModel):
     efficiency: float = DEFAULT_COLLECTION_EFFICIENCY
     usage_level: str = "survival_total"
     climate_scenario: str = "historical"
+    station: str = DEFAULT_STATION_ID
 
 
 class SimulationRow(BaseModel):

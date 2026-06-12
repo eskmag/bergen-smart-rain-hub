@@ -2,11 +2,12 @@ from fastapi import APIRouter
 
 from backend.analysis import BUILDING_PRESETS, WATER_NEEDS
 from backend.climate import SCENARIOS
+from backend.config import STATIONS
 from backend.scales import SCALES, SCALE_PRESETS, INFRASTRUCTURE_FACILITIES
 from backend.treatment import ROOF_MATERIALS
 from api.schemas import (
     ConfigResponse, ConfigDefaults, ScaleSchema, BuildingPreset,
-    InfrastructureFacility, ClimateScenario, RoofMaterial,
+    InfrastructureFacility, ClimateScenario, RoofMaterial, StationSchema,
 )
 
 router = APIRouter()
@@ -49,6 +50,11 @@ def get_config():
         for k, v in ROOF_MATERIALS.items()
     ]
 
+    stations = [
+        StationSchema(id=k, **v)
+        for k, v in STATIONS.items()
+    ]
+
     return ConfigResponse(
         scales=scales,
         scale_presets=SCALE_PRESETS,
@@ -58,4 +64,5 @@ def get_config():
         water_needs=WATER_NEEDS,
         defaults=ConfigDefaults(),
         roof_materials=roof_materials,
+        stations=stations,
     )
