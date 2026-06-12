@@ -102,6 +102,9 @@ def required_treatment(risk_class, scale):
 
     'uegnet' surfaces cannot be made potable by treatment alone — the
     surface itself must be remediated first (docs §4.1).
+
+    Raises KeyError on unknown risk_class or scale (matching classify_roof's
+    documented contract).
     """
     if risk_class == "uegnet":
         return {

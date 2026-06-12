@@ -1,7 +1,7 @@
 import pytest
 
 from backend.treatment import (
-    ROOF_MATERIALS, RISK_CLASSES, classify_roof, required_treatment,
+    ROOF_MATERIALS, RISK_CLASSES, classify_roof, required_treatment, _BARRIERS,
 )
 
 
@@ -42,3 +42,27 @@ def test_required_treatment_unsuitable_has_no_barriers():
 def test_required_treatment_infrastructure_includes_uv():
     t = required_treatment("middels", "infrastructure")
     assert any("UV" in b for b in t["barriers"])
+    assert "Restklorering" in t["barriers"]
+
+
+def test_required_treatment_unknown_scale_raises():
+    with pytest.raises(KeyError):
+        required_treatment("lav", "district")
+
+
+def test_barrier_table_integrity():
+    treatable_classes = [rc for rc in RISK_CLASSES if rc != "uegnet"]
+    scales = ("household", "neighbourhood", "infrastructure")
+    for risk_class in treatable_classes:
+        assert risk_class in _BARRIERS, f"Missing risk class: {risk_class}"
+        for scale in scales:
+            assert scale in _BARRIERS[risk_class], (
+                f"Missing scale '{scale}' for risk class '{risk_class}'"
+            )
+            barriers, cost_low, cost_high = _BARRIERS[risk_class][scale]
+            assert len(barriers) > 0, (
+                f"Empty barriers for ({risk_class}, {scale})"
+            )
+            assert 0 < cost_low <= cost_high, (
+                f"Invalid cost range ({cost_low}, {cost_high}) for ({risk_class}, {scale})"
+            )
