@@ -115,6 +115,48 @@ class TestObservationsEndpoint:
         assert r.json() == []
 
 
+@pytest.fixture
+def two_year_db(tmp_path, monkeypatch):
+    """Temp database with 2 full synthetic years for SN50540.
+
+    Uses the two most-recently-completed calendar years so that
+    _load_df(days=3650) captures them while _load_df(days=365) also returns
+    data (we seed the most recent ~365 days from year-2 as well).
+    """
+    db_path = tmp_path / "rain2yr.db"
+    conn = init_db(db_path)
+    today = date.today()
+    # Two complete calendar years ending yesterday
+    year2 = today.year - 1
+    year1 = year2 - 1
+    rows = []
+    for year in (year1, year2):
+        start_of_year = date(year, 1, 1)
+        for i in range(365):
+            d = start_of_year + timedelta(days=i)
+            rows.append({
+                "station_id": DEFAULT_STATION_ID,
+                "date": d.isoformat(),
+                # year1: wetter (8 mm on rain days); year2: drier (4 mm)
+                "precipitation_mm": 0.0 if i % 3 == 0 else (8.0 if year == year1 else 4.0),
+                "air_temperature_c": 8.0,
+            })
+    # Also seed the last 60 days of "today's" year so _load_df(days=365) is non-empty
+    recent_start = today - timedelta(days=59)
+    for i in range(60):
+        d = recent_start + timedelta(days=i)
+        rows.append({
+            "station_id": DEFAULT_STATION_ID,
+            "date": d.isoformat(),
+            "precipitation_mm": 0.0 if i % 3 == 0 else 6.0,
+            "air_temperature_c": 8.0,
+        })
+    store_observations(conn, pd.DataFrame(rows))
+    conn.close()
+    monkeypatch.setattr("api.routers.simulate.DB_PATH", db_path)
+    return db_path, year1, year2
+
+
 class TestSimulateEndpoint:
     def test_happy_path(self, seeded_db):
         r = client.post("/api/simulate/beredskap", json=VALID_SIM_REQUEST)
@@ -125,6 +167,38 @@ class TestSimulateEndpoint:
         assert body["dry_spells"] == [] or body["dry_spells"][0]["days"] >= 1
         # historical scenario → no comparison block
         assert body["scenario_comparison"] is None
+
+    def test_yearly_outcomes_present_in_response(self, seeded_db):
+        """yearly_outcomes key must exist and be a list (seeded fixture is only
+        60 days → all years have <300 days → list is empty, but field is present)."""
+        r = client.post("/api/simulate/beredskap", json=VALID_SIM_REQUEST)
+        assert r.status_code == 200
+        body = r.json()
+        assert "yearly_outcomes" in body
+        assert isinstance(body["yearly_outcomes"], list)
+
+    def test_yearly_outcomes_two_full_years(self, two_year_db):
+        """With 2 × 365-day years the response must have exactly those 2 outcome
+        rows sorted by year, each with the expected keys."""
+        db_path, year1, year2 = two_year_db
+        r = client.post("/api/simulate/beredskap", json=VALID_SIM_REQUEST)
+        assert r.status_code == 200
+        outcomes = r.json()["yearly_outcomes"]
+        # At least the two full seeded years must appear (current partial year skipped)
+        years_in_response = [row["year"] for row in outcomes]
+        assert year1 in years_in_response
+        assert year2 in years_in_response
+        # Sorted by year ascending
+        assert years_in_response == sorted(years_in_response)
+        # Each row must have the expected keys
+        expected_keys = {"year", "total_collected_liters", "days_tank_empty",
+                         "min_tank_pct", "longest_dry_spell_days"}
+        for row in outcomes:
+            assert expected_keys <= row.keys()
+        # year1 (wetter, 8 mm) must collect more than year2 (drier, 4 mm)
+        outcome_by_year = {row["year"]: row for row in outcomes}
+        assert (outcome_by_year[year1]["total_collected_liters"]
+                > outcome_by_year[year2]["total_collected_liters"])
 
     def test_scenario_comparison_included(self, seeded_db):
         req = {**VALID_SIM_REQUEST, "climate_scenario": "moderate"}

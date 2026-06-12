@@ -137,11 +137,20 @@ class ScenarioComparison(BaseModel):
     longest_dry_spell: int
 
 
+class YearlyOutcome(BaseModel):
+    year: int
+    total_collected_liters: float
+    days_tank_empty: int
+    min_tank_pct: float
+    longest_dry_spell_days: int
+
+
 class BeredskapsResponse(BaseModel):
     summary: dict[str, Any]
     simulation_series: list[SimulationRow]
     dry_spells: list[DrySpell]
     scenario_comparison: list[ScenarioComparison] | None = None
+    yearly_outcomes: list[YearlyOutcome] = []
 
 
 # ── Cost analysis ─────────────────────────────────────────────────────────────

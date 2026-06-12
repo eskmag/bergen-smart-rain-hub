@@ -134,6 +134,11 @@ export interface components {
             dry_spells: components["schemas"]["DrySpell"][];
             /** Scenario Comparison */
             scenario_comparison?: components["schemas"]["ScenarioComparison"][] | null;
+            /**
+             * Yearly Outcomes
+             * @default []
+             */
+            yearly_outcomes: components["schemas"]["YearlyOutcome"][];
         };
         /** BuildingInput */
         BuildingInput: {
@@ -430,6 +435,19 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** YearlyOutcome */
+        YearlyOutcome: {
+            /** Year */
+            year: number;
+            /** Total Collected Liters */
+            total_collected_liters: number;
+            /** Days Tank Empty */
+            days_tank_empty: number;
+            /** Min Tank Pct */
+            min_tank_pct: number;
+            /** Longest Dry Spell Days */
+            longest_dry_spell_days: number;
         };
     };
     responses: never;

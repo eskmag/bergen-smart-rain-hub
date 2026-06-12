@@ -4,11 +4,12 @@ from backend.config import DB_PATH, DEFAULT_STATION_ID, STATIONS, default_date_r
 from backend.database import init_db, get_observations
 from backend.analysis import (
     Building, storage_simulation, emergency_summary, find_dry_spells,
+    yearly_outcomes,
 )
 from backend.climate import apply_climate_projection, compare_scenarios
 from api.schemas import (
     BeredskapsRequest, BeredskapsResponse, SimulationRow, DrySpell,
-    ScenarioComparison,
+    ScenarioComparison, YearlyOutcome,
 )
 
 router = APIRouter()
@@ -30,6 +31,10 @@ def _load_df(days: int = 365, station: str = DEFAULT_STATION_ID):
 def simulate_beredskap(req: BeredskapsRequest):
     df = _load_df(station=req.station)
     df_scenario = apply_climate_projection(df, req.climate_scenario)
+
+    # Long frame for per-year analysis (up to ~10 years)
+    df_full = _load_df(days=3650, station=req.station)
+    df_full_scenario = apply_climate_projection(df_full, req.climate_scenario)
 
     buildings = [
         Building(b.name, roof_area_m2=b.roof_area_m2, height_m=b.height_m)
@@ -82,9 +87,16 @@ def simulate_beredskap(req: BeredskapsRequest):
             ScenarioComparison(**c) for c in comparison
         ]
 
+    outcomes_raw = yearly_outcomes(
+        df_full_scenario, buildings, req.tank_liters,
+        req.population, req.usage_level, req.efficiency,
+    )
+    yearly_outcomes_list = [YearlyOutcome(**row) for row in outcomes_raw]
+
     return BeredskapsResponse(
         summary=summary,
         simulation_series=simulation_series,
         dry_spells=dry_spells,
         scenario_comparison=scenario_comparison,
+        yearly_outcomes=yearly_outcomes_list,
     )

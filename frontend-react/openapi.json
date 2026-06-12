@@ -310,6 +310,14 @@
               }
             ],
             "title": "Scenario Comparison"
+          },
+          "yearly_outcomes": {
+            "items": {
+              "$ref": "#/components/schemas/YearlyOutcome"
+            },
+            "type": "array",
+            "title": "Yearly Outcomes",
+            "default": []
           }
         },
         "type": "object",
@@ -1072,6 +1080,39 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "YearlyOutcome": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "total_collected_liters": {
+            "type": "number",
+            "title": "Total Collected Liters"
+          },
+          "days_tank_empty": {
+            "type": "integer",
+            "title": "Days Tank Empty"
+          },
+          "min_tank_pct": {
+            "type": "number",
+            "title": "Min Tank Pct"
+          },
+          "longest_dry_spell_days": {
+            "type": "integer",
+            "title": "Longest Dry Spell Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "total_collected_liters",
+          "days_tank_empty",
+          "min_tank_pct",
+          "longest_dry_spell_days"
+        ],
+        "title": "YearlyOutcome"
       }
     }
   }
