@@ -140,7 +140,7 @@ export default function ResultPanel() {
       />
 
       {/* Water quality */}
-      <WaterQualityCard material={roofMaterial} scale={scale} prefix="k" />
+      <WaterQualityCard material={roofMaterial} scale={scale} classPrefix="k" />
 
       {/* Data note */}
       <div className="k-data-note">

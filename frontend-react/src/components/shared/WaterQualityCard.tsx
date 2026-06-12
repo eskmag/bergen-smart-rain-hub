@@ -12,10 +12,10 @@ interface WaterQualityCardProps {
   material: string
   scale: string
   // 'k' (kalkulator) or 't' (takkart) — selects the page's CSS namespace
-  prefix: string
+  classPrefix: 'k' | 't'
 }
 
-export function WaterQualityCard({ material, scale, prefix: p }: WaterQualityCardProps) {
+export function WaterQualityCard({ material, scale, classPrefix: p }: WaterQualityCardProps) {
   const { data } = useQuery({
     queryKey: ['treatment', material, scale],
     queryFn: () => api.treatment(material, scale),
