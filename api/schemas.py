@@ -61,6 +61,13 @@ class ConfigDefaults(BaseModel):
     tank_recommendation_days: list[int] = list(TANK_RECOMMENDATION_DAYS)
 
 
+class RoofMaterial(BaseModel):
+    key: str
+    label: str
+    risk_class: str
+    description: str
+
+
 class ConfigResponse(BaseModel):
     scales: list[ScaleSchema]
     scale_presets: dict[str, list[str]]
@@ -69,6 +76,7 @@ class ConfigResponse(BaseModel):
     climate_scenarios: list[ClimateScenario]
     water_needs: dict[str, float]
     defaults: ConfigDefaults
+    roof_materials: list[RoofMaterial]
 
 
 # ── Observations ─────────────────────────────────────────────────────────────
@@ -159,3 +167,16 @@ class CostsResponse(BaseModel):
     capital_breakdown: list[CostBreakdownItem]
     operating_breakdown: list[CostBreakdownItem]
     all_estimates: list[CostEstimateRow]
+
+
+# ── Water quality / treatment ────────────────────────────────────────────────
+
+class TreatmentResponse(BaseModel):
+    material: str
+    material_label: str
+    risk_class: str
+    potable: bool
+    barriers: list[str]
+    cost_low_nok: int
+    cost_high_nok: int
+    note: str

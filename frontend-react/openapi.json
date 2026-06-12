@@ -167,6 +167,55 @@
           }
         }
       }
+    },
+    "/api/treatment": {
+      "get": {
+        "summary": "Get Treatment",
+        "operationId": "get_treatment_api_treatment_get",
+        "parameters": [
+          {
+            "name": "material",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Material"
+            }
+          },
+          {
+            "name": "scale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "household",
+              "title": "Scale"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -433,6 +482,13 @@
           },
           "defaults": {
             "$ref": "#/components/schemas/ConfigDefaults"
+          },
+          "roof_materials": {
+            "items": {
+              "$ref": "#/components/schemas/RoofMaterial"
+            },
+            "type": "array",
+            "title": "Roof Materials"
           }
         },
         "type": "object",
@@ -443,7 +499,8 @@
           "infrastructure_facilities",
           "climate_scenarios",
           "water_needs",
-          "defaults"
+          "defaults",
+          "roof_materials"
         ],
         "title": "ConfigResponse"
       },
@@ -715,6 +772,34 @@
         ],
         "title": "Observation"
       },
+      "RoofMaterial": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "risk_class": {
+            "type": "string",
+            "title": "Risk Class"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "risk_class",
+          "description"
+        ],
+        "title": "RoofMaterial"
+      },
       "ScaleSchema": {
         "properties": {
           "key": {
@@ -845,6 +930,57 @@
           "days_remaining"
         ],
         "title": "SimulationRow"
+      },
+      "TreatmentResponse": {
+        "properties": {
+          "material": {
+            "type": "string",
+            "title": "Material"
+          },
+          "material_label": {
+            "type": "string",
+            "title": "Material Label"
+          },
+          "risk_class": {
+            "type": "string",
+            "title": "Risk Class"
+          },
+          "potable": {
+            "type": "boolean",
+            "title": "Potable"
+          },
+          "barriers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Barriers"
+          },
+          "cost_low_nok": {
+            "type": "integer",
+            "title": "Cost Low Nok"
+          },
+          "cost_high_nok": {
+            "type": "integer",
+            "title": "Cost High Nok"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "material",
+          "material_label",
+          "risk_class",
+          "potable",
+          "barriers",
+          "cost_low_nok",
+          "cost_high_nok",
+          "note"
+        ],
+        "title": "TreatmentResponse"
       },
       "ValidationError": {
         "properties": {

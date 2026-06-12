@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/treatment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Treatment */
+        get: operations["get_treatment_api_treatment_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -203,6 +220,8 @@ export interface components {
                 [key: string]: number;
             };
             defaults: components["schemas"]["ConfigDefaults"];
+            /** Roof Materials */
+            roof_materials: components["schemas"]["RoofMaterial"][];
         };
         /** CostBreakdownItem */
         CostBreakdownItem: {
@@ -301,6 +320,17 @@ export interface components {
             /** Air Temperature C */
             air_temperature_c?: number | null;
         };
+        /** RoofMaterial */
+        RoofMaterial: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Risk Class */
+            risk_class: string;
+            /** Description */
+            description: string;
+        };
         /** ScaleSchema */
         ScaleSchema: {
             /** Key */
@@ -347,6 +377,25 @@ export interface components {
             tank_level_liters: number;
             /** Days Remaining */
             days_remaining: number;
+        };
+        /** TreatmentResponse */
+        TreatmentResponse: {
+            /** Material */
+            material: string;
+            /** Material Label */
+            material_label: string;
+            /** Risk Class */
+            risk_class: string;
+            /** Potable */
+            potable: boolean;
+            /** Barriers */
+            barriers: string[];
+            /** Cost Low Nok */
+            cost_low_nok: number;
+            /** Cost High Nok */
+            cost_high_nok: number;
+            /** Note */
+            note: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -474,6 +523,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CostsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_treatment_api_treatment_get: {
+        parameters: {
+            query: {
+                material: string;
+                scale?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreatmentResponse"];
                 };
             };
             /** @description Validation Error */

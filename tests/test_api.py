@@ -164,3 +164,22 @@ class TestCostsEndpoint:
         with_l = client.get("/api/costs?population=4&scale=household&annual_liters=100000").json()
         assert without["cost_per_liter_20"] is None
         assert with_l["cost_per_liter_20"] > 0
+
+
+class TestTreatmentEndpoint:
+    def test_treatment_endpoint(self):
+        r = client.get("/api/treatment?material=takstein&scale=household")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["risk_class"] == "lav"
+        assert body["potable"] is True
+        assert "Sedimentfilter" in body["barriers"]
+
+    def test_treatment_unknown_material_422(self):
+        r = client.get("/api/treatment?material=papp123&scale=household")
+        assert r.status_code == 422
+
+    def test_config_includes_roof_materials(self):
+        r = client.get("/api/config")
+        materials = r.json()["roof_materials"]
+        assert any(m["key"] == "takstein" for m in materials)
