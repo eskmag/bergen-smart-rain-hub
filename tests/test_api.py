@@ -223,7 +223,28 @@ class TestStationSelection:
         r = client.get("/api/observations?station=SN99999")
         assert r.status_code == 422
 
-    def test_simulate_accepts_alternate_station(self, seeded_db):
-        req = {**VALID_SIM_REQUEST, "station": "SN50500"}
-        r = client.post("/api/simulate/beredskap", json=req)
+    def test_observations_station_filter_returns_only_that_station(self, seeded_db):
+        # seeded_db seeds exactly 60 rows for SN50500; the response must not
+        # include the SN50540 rows (which would double the count to 120).
+        r = client.get("/api/observations?days=365&station=SN50500")
         assert r.status_code == 200
+        rows = r.json()
+        # Exactly the 60 seeded SN50500 rows — not mixed with SN50540 rows.
+        assert len(rows) == 60
+
+    def test_simulate_station_param_changes_collected_volume(self, seeded_db):
+        # SN50540 wet days: 6.0 mm; SN50500 wet days: 5.0 mm.
+        # Same roof area and efficiency → SN50540 must collect strictly more.
+        default_body = client.post(
+            "/api/simulate/beredskap", json=VALID_SIM_REQUEST
+        ).json()
+        alt_body = client.post(
+            "/api/simulate/beredskap",
+            json={**VALID_SIM_REQUEST, "station": "SN50500"},
+        ).json()
+        default_collected = default_body["summary"]["total_collected_liters"]
+        alt_collected = alt_body["summary"]["total_collected_liters"]
+        # The station parameter must actually route to different data.
+        assert default_collected > alt_collected, (
+            f"Expected SN50540 ({default_collected} L) > SN50500 ({alt_collected} L)"
+        )
