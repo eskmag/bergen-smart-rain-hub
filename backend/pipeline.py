@@ -66,7 +66,7 @@ if __name__ == "__main__":
     rows = run(days=args.days, stations=stations)
 
     if rows:
-        print(f"\nOppsummering:")
+        print("\nOppsummering:")
         print(f"  Totalt lagret: {rows} observasjoner")
         print(f"  Stasjoner: {args.station or ', '.join(STATIONS)}")
     else:
