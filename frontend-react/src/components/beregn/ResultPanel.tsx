@@ -4,6 +4,7 @@ import { useBeredskap } from '../../context/BeredskapsContext'
 import SimulationChart from '../shared/SimulationChart'
 import DrySpellsList from '../shared/DrySpellsList'
 import { WaterQualityCard } from '../shared/WaterQualityCard'
+import { YearlyOutcomes } from '../shared/YearlyOutcomes'
 import { BUILDING_OPTIONS } from './buildingTypes'
 
 function fmt(n: number, decimals = 0) {
@@ -20,7 +21,7 @@ export default function ResultPanel() {
   const {
     buildingKey,
     simResult, isSimPending,
-    population, scale, annualLiters, usageLevel, roofMaterial,
+    population, scale, annualLiters, usageLevel, roofMaterial, station,
   } = useBeredskap()
 
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
@@ -34,6 +35,8 @@ export default function ResultPanel() {
 
   const buildingLabel =
     BUILDING_OPTIONS.find(o => o.key === buildingKey)?.label.toLowerCase() ?? 'bygg'
+
+  const stationLabel = config?.stations.find(s => s.id === station)?.label
 
   if (!config) {
     return <div className="k-result-panel" />
@@ -141,6 +144,15 @@ export default function ResultPanel() {
 
       {/* Water quality */}
       <WaterQualityCard material={roofMaterial} scale={scale} classPrefix="k" />
+
+      {/* Historical year outcomes */}
+      {simResult?.yearly_outcomes && (
+        <YearlyOutcomes
+          outcomes={simResult.yearly_outcomes}
+          classPrefix="k"
+          stationLabel={stationLabel}
+        />
+      )}
 
       {/* Data note */}
       <div className="k-data-note">

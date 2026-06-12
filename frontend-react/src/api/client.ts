@@ -7,6 +7,7 @@
 
 import type { components } from './schema'
 
+export type YearlyOutcome = components['schemas']['YearlyOutcome']
 export type ScaleSchema = components['schemas']['ScaleSchema']
 export type BuildingPreset = components['schemas']['BuildingPreset']
 export type InfrastructureFacility = components['schemas']['InfrastructureFacility']
