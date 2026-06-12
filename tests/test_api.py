@@ -179,6 +179,23 @@ class TestTreatmentEndpoint:
         r = client.get("/api/treatment?material=papp123&scale=household")
         assert r.status_code == 422
 
+    def test_treatment_infrastructure_scale(self):
+        r = client.get("/api/treatment?material=takstein&scale=infrastructure")
+        assert r.status_code == 200
+        body = r.json()
+        assert "Restklorering" in body["barriers"]
+
+    def test_treatment_kobbertak_not_potable(self):
+        r = client.get("/api/treatment?material=kobbertak")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["potable"] is False
+        assert body["barriers"] == []
+
+    def test_treatment_unknown_scale_422(self):
+        r = client.get("/api/treatment?material=takstein&scale=district")
+        assert r.status_code == 422
+
     def test_config_includes_roof_materials(self):
         r = client.get("/api/config")
         materials = r.json()["roof_materials"]

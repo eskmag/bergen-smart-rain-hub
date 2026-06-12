@@ -9,11 +9,12 @@ router = APIRouter()
 @router.get("/treatment", response_model=TreatmentResponse)
 def get_treatment(material: str, scale: str = "household"):
     if material not in ROOF_MATERIALS:
-        raise HTTPException(status_code=422, detail=f"Ukjent takmateriale: {material}")
-    if scale not in ("household", "neighbourhood", "infrastructure"):
-        raise HTTPException(status_code=422, detail=f"Ukjent skala: {scale}")
+        raise HTTPException(status_code=422, detail=f"Ukjent takmateriale: {material!r}")
     mat = classify_roof(material)
-    t = required_treatment(mat["risk_class"], scale)
+    try:
+        t = required_treatment(mat["risk_class"], scale)
+    except KeyError:
+        raise HTTPException(status_code=422, detail=f"Ukjent skala: {scale!r}")
     return TreatmentResponse(
         material=material,
         material_label=mat["label"],
