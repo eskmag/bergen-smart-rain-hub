@@ -25,6 +25,7 @@ export type CostBreakdownItem = components['schemas']['CostBreakdownItem']
 export type CostsResponse = components['schemas']['CostsResponse']
 export type RoofMaterial = components['schemas']['RoofMaterial']
 export type TreatmentResponse = components['schemas']['TreatmentResponse']
+export type StationSchema = components['schemas']['StationSchema']
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, init)
@@ -38,8 +39,10 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   config: () => apiFetch<ConfigResponse>('/api/config'),
 
-  observations: (days = 365) =>
-    apiFetch<Observation[]>(`/api/observations?days=${days}`),
+  observations: (days = 365, station?: string) =>
+    apiFetch<Observation[]>(
+      `/api/observations?days=${days}${station ? `&station=${station}` : ''}`,
+    ),
 
   simulateBeredskap: (req: BeredskapsRequest) =>
     apiFetch<BeredskapsResponse>('/api/simulate/beredskap', {

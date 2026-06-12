@@ -22,6 +22,8 @@ interface BeredskapsState {
   setScenario: (v: string) => void
   roofMaterial: string
   setRoofMaterial: (v: string) => void
+  station: string
+  setStation: (v: string) => void
   scale: string
   setScale: (v: string) => void
   heightM: number
@@ -70,6 +72,7 @@ export function BeredskapsProvider({
   const [usageLevel, setUsageLevel] = useState('survival_total')
   const [scenario, setScenario] = useState('historical')
   const [roofMaterial, setRoofMaterial] = useState('takstein')
+  const [station, setStation] = useState('SN50540')
   const [scale, setScale] = useState(initialScale)
   const [heightM, setHeightM] = useState(initialHeightM)
 
@@ -88,9 +91,10 @@ export function BeredskapsProvider({
       efficiency: efficiency / 100,
       usage_level: usageLevel,
       climate_scenario: scenario,
+      station,
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roofPerBuilding, numBuildings, population, tankLiters, efficiency, usageLevel, scenario, heightM])
+  }, [roofPerBuilding, numBuildings, population, tankLiters, efficiency, usageLevel, scenario, heightM, station])
 
   const simResult = simMutation.data
 
@@ -110,6 +114,7 @@ export function BeredskapsProvider({
       usageLevel, setUsageLevel,
       scenario, setScenario,
       roofMaterial, setRoofMaterial,
+      station, setStation,
       scale, setScale,
       heightM, setHeightM,
       simResult,

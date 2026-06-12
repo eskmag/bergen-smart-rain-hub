@@ -37,6 +37,7 @@ export default function InputPanel() {
     efficiency, setEfficiency,
     usageLevel, setUsageLevel,
     roofMaterial, setRoofMaterial,
+    station, setStation,
   } = useBeredskap()
 
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
@@ -187,6 +188,18 @@ export default function InputPanel() {
             >
               {(config?.roof_materials ?? []).map(m => (
                 <option key={m.key} value={m.key}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="k-adv-row">
+            <div className="k-adv-label"><span>Værstasjon</span></div>
+            <select
+              className="k-adv-select"
+              value={station}
+              onChange={e => setStation(e.target.value)}
+            >
+              {(config?.stations ?? []).map(s => (
+                <option key={s.id} value={s.id} title={s.note ?? undefined}>{s.label}</option>
               ))}
             </select>
           </div>
