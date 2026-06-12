@@ -303,6 +303,41 @@ def emergency_summary(df, buildings, tank_capacity_liters, population,
     }
 
 
+# Minimum days of data for a calendar year to count in yearly_outcomes
+MIN_DAYS_FOR_YEARLY_OUTCOME = 300
+
+
+def yearly_outcomes(df, buildings, tank_capacity_liters, population,
+                    usage_level="survival_total",
+                    collection_efficiency=DEFAULT_COLLECTION_EFFICIENCY):
+    """Run the storage simulation independently per calendar year.
+
+    Gives best/median/worst-year framing instead of a single number.
+    Partial years (< MIN_DAYS_FOR_YEARLY_OUTCOME days) are skipped so a
+    half-fetched year cannot masquerade as a drought.
+    """
+    df = df.copy()
+    df["date"] = pd.to_datetime(df["date"])
+    results = []
+    for year, year_df in df.groupby(df["date"].dt.year):
+        if len(year_df) < MIN_DAYS_FOR_YEARLY_OUTCOME:
+            continue
+        sim = storage_simulation(year_df, buildings, tank_capacity_liters,
+                                 population, usage_level, collection_efficiency)
+        spells = find_dry_spells(year_df)
+        total_area = sum(b.roof_area_m2 for b in buildings)
+        results.append({
+            "year": int(year),
+            "total_collected_liters": float(water_collected(
+                year_df["precipitation_mm"].sum(), total_area,
+                collection_efficiency)),
+            "days_tank_empty": int((sim["tank_level_liters"] == 0).sum()),
+            "min_tank_pct": float(sim["tank_pct"].min()),
+            "longest_dry_spell_days": int(spells["days"].max()) if not spells.empty else 0,
+        })
+    return sorted(results, key=lambda r: r["year"])
+
+
 # ============================================================
 # Rainfall patterns
 # ============================================================
