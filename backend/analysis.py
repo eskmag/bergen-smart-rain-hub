@@ -315,6 +315,12 @@ def yearly_outcomes(df, buildings, tank_capacity_liters, population,
     Gives best/median/worst-year framing instead of a single number.
     Partial years (< MIN_DAYS_FOR_YEARLY_OUTCOME days) are skipped so a
     half-fetched year cannot masquerade as a drought.
+
+    Years are simulated independently: each starts from a 50%-full tank
+    (storage_simulation's initial state) with no carry-over of the previous
+    December's level. This isolates each year's weather, which is the point
+    of the best/worst framing, but worst-year numbers are slightly
+    optimistic if a drought spans New Year.
     """
     df = df.copy()
     df["date"] = pd.to_datetime(df["date"])
