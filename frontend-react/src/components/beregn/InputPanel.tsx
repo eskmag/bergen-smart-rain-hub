@@ -199,7 +199,7 @@ export default function InputPanel() {
               onChange={e => setStation(e.target.value)}
             >
               {(config?.stations ?? []).map(s => (
-                <option key={s.id} value={s.id} title={s.note ?? undefined}>{s.label}</option>
+                <option key={s.id} value={s.id} title={s.note}>{s.label}</option>
               ))}
             </select>
           </div>
