@@ -219,4 +219,5 @@ class BydelResponse(BaseModel):
     total_daily_liters: int
     total_demand_liters: int
     demand_coverage_pct: float
+    persons_covered: int
     assumptions: list[str]

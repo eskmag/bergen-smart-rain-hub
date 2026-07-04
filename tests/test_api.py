@@ -332,6 +332,7 @@ class TestBydelEndpoint:
         assert len(body["bydeler"]) == 8
         assert 0 < body["demand_coverage_pct"] < 1000
         assert body["participation_pct"] == 0.2
+        assert body["persons_covered"] > 0
         assert body["assumptions"]
 
     def test_bydel_default_participation(self):

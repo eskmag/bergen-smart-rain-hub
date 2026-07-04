@@ -196,6 +196,8 @@ export interface components {
             total_demand_liters: number;
             /** Demand Coverage Pct */
             demand_coverage_pct: number;
+            /** Persons Covered */
+            persons_covered: number;
             /** Assumptions */
             assumptions: string[];
         };

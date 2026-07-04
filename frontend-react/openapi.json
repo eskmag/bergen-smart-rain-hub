@@ -454,6 +454,10 @@
             "type": "number",
             "title": "Demand Coverage Pct"
           },
+          "persons_covered": {
+            "type": "integer",
+            "title": "Persons Covered"
+          },
           "assumptions": {
             "items": {
               "type": "string"
@@ -469,6 +473,7 @@
           "total_daily_liters",
           "total_demand_liters",
           "demand_coverage_pct",
+          "persons_covered",
           "assumptions"
         ],
         "title": "BydelResponse"

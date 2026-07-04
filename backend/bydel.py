@@ -74,6 +74,8 @@ def city_potential(participation_pct=0.20,
         "total_daily_liters": total_yield,
         "total_demand_liters": total_demand,
         "demand_coverage_pct": round(100 * total_yield / total_demand, 1),
+        # How many people the average daily yield would sustain at WHO minimum
+        "persons_covered": round(total_yield / need),
         "assumptions": [
             f"Egnet takareal: {SUITABLE_ROOF_M2_PER_CAPITA:.0f} m² per innbygger "
             "(reduksjonsfaktor for tette bydeler)",

@@ -50,6 +50,20 @@ def test_dense_bydel_density_factor_applied():
     assert per_capita_bergenhus < per_capita_fana
 
 
+def test_persons_covered_derived_from_yield():
+    from backend.analysis import WATER_NEEDS
+    res = city_potential(participation_pct=0.20)
+    expected = round(res["total_daily_liters"] / WATER_NEEDS["survival_total"])
+    assert res["persons_covered"] == expected
+    assert res["persons_covered"] > 0
+
+
+def test_persons_covered_monotonic_in_participation():
+    low = city_potential(participation_pct=0.10)["persons_covered"]
+    high = city_potential(participation_pct=0.50)["persons_covered"]
+    assert high > low
+
+
 def test_totals_are_sum_of_rows():
     res = city_potential(participation_pct=0.20)
     assert res["total_daily_liters"] == sum(
