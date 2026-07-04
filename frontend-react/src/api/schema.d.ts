@@ -198,6 +198,8 @@ export interface components {
             demand_coverage_pct: number;
             /** Persons Covered */
             persons_covered: number;
+            /** Roof M2 Per Capita */
+            roof_m2_per_capita: number;
             /** Assumptions */
             assumptions: string[];
         };

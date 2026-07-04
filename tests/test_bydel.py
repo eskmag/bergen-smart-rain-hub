@@ -64,6 +64,12 @@ def test_persons_covered_monotonic_in_participation():
     assert high > low
 
 
+def test_roof_assumption_exposed():
+    from backend.bydel import SUITABLE_ROOF_M2_PER_CAPITA
+    res = city_potential(participation_pct=0.20)
+    assert res["roof_m2_per_capita"] == SUITABLE_ROOF_M2_PER_CAPITA
+
+
 def test_totals_are_sum_of_rows():
     res = city_potential(participation_pct=0.20)
     assert res["total_daily_liters"] == sum(

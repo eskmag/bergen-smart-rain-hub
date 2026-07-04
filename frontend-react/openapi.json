@@ -458,6 +458,10 @@
             "type": "integer",
             "title": "Persons Covered"
           },
+          "roof_m2_per_capita": {
+            "type": "number",
+            "title": "Roof M2 Per Capita"
+          },
           "assumptions": {
             "items": {
               "type": "string"
@@ -474,6 +478,7 @@
           "total_demand_liters",
           "demand_coverage_pct",
           "persons_covered",
+          "roof_m2_per_capita",
           "assumptions"
         ],
         "title": "BydelResponse"
