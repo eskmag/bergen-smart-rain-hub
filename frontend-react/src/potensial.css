@@ -1,100 +1,91 @@
-/* Potensial (bydel policy view) — reuses the landing design tokens. */
+/* Potensial (bydel policy view) — p- classes fill the gaps the shared
+   l- landing classes don't cover: the slider strip and the results section.
+   All values mirror landing.css rhythm (padding, borders, tokens). */
 
-.p-hero {
-  padding: 4rem 2.5rem 2.5rem;
-  max-width: 880px;
+/* ── Slider strip (same rhythm as .l-stats-strip) ── */
+
+.p-slider-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3rem;
+  padding: 1.5rem 2.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
-.p-title {
-  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-  line-height: 1.15;
-  margin: 0 0 0.75rem;
-  color: var(--color-text);
-}
-
-.p-sub {
-  color: var(--color-text-muted);
-  max-width: 60ch;
-  margin: 0 0 2rem;
-}
-
-.p-headline-card {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--color-primary-light);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  margin-bottom: 1.75rem;
-}
-
-.p-headline-num {
-  font-family: var(--font-mono);
-  font-size: 2.2rem;
+.p-slider-title {
+  font-size: 14px;
   font-weight: 500;
-  color: var(--color-primary-dark);
+  color: var(--color-text);
+  margin-bottom: 4px;
 }
 
-.p-headline-label {
+.p-slider-hint {
+  font-size: 13px;
   color: var(--color-text-muted);
-  max-width: 28ch;
-  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 52ch;
 }
 
-.p-slider-row {
+.p-slider-control {
   display: flex;
   align-items: center;
   gap: 1rem;
-  max-width: 480px;
+  flex: 1;
+  max-width: 380px;
 }
 
-.p-slider-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.p-slider-row input[type='range'] {
+.p-slider-control input[type='range'] {
   flex: 1;
   accent-color: var(--color-primary);
 }
 
 .p-slider-value {
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  min-width: 3.5ch;
+  font-size: 15px;
+  color: var(--color-text);
+  min-width: 4ch;
   text-align: right;
 }
 
-.p-slider-hint {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  margin: 0.5rem 0 0;
+/* ── Results section (same rhythm as .l-narrative) ── */
+
+.p-results {
+  padding: 5rem 2.5rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.p-content {
-  padding: 0 2.5rem 4rem;
+.p-results-grid {
   display: grid;
   gap: 1.5rem;
-  max-width: 880px;
 }
 
 .p-chart-card,
 .p-table-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem;
 }
 
 .p-card-title {
-  font-size: 1rem;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  margin: 0 0 0.35rem;
+}
+
+.p-card-note {
+  font-size: 13px;
+  color: var(--color-text-muted);
   margin: 0 0 1rem;
 }
 
 .p-placeholder {
   color: var(--color-text-muted);
+  font-size: 13px;
 }
 
 .p-table-scroll {
@@ -104,14 +95,21 @@
 .p-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 13px;
 }
 
 .p-table th,
 .p-table td {
-  padding: 0.45rem 0.5rem;
+  padding: 0.5rem 0.5rem;
   border-bottom: 1px solid var(--color-border);
   text-align: left;
+  color: var(--color-text);
+}
+
+.p-table th {
+  font-weight: 500;
+  color: var(--color-text-muted);
+  font-size: 12px;
 }
 
 .p-table .p-num {
@@ -124,40 +122,24 @@
   border-bottom: none;
 }
 
-.p-assumptions {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1rem 1.5rem;
-  font-size: 0.9rem;
-}
+/* ── Responsive ── */
 
-.p-assumptions summary {
-  cursor: pointer;
-  font-weight: 600;
-}
+@media (max-width: 900px) {
+  .p-slider-strip {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
 
-.p-assumptions ul {
-  margin: 0.75rem 0 0;
-  padding-left: 1.25rem;
-  color: var(--color-text-muted);
-}
-
-.p-assumptions-note {
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
-  margin: 0.75rem 0 0;
+  .p-slider-control {
+    max-width: none;
+  }
 }
 
 @media (max-width: 640px) {
-  .p-hero,
-  .p-content {
+  .p-slider-strip,
+  .p-results {
     padding-left: 1.25rem;
     padding-right: 1.25rem;
-  }
-
-  .p-headline-card {
-    flex-direction: column;
-    gap: 0.25rem;
   }
 }
