@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/bydel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Bydel */
+        get: operations["get_bydel_api_bydel_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -166,6 +183,38 @@ export interface components {
             height_m: number;
             /** Description */
             description: string;
+        };
+        /** BydelResponse */
+        BydelResponse: {
+            /** Bydeler */
+            bydeler: components["schemas"]["BydelRow"][];
+            /** Participation Pct */
+            participation_pct: number;
+            /** Total Daily Liters */
+            total_daily_liters: number;
+            /** Total Demand Liters */
+            total_demand_liters: number;
+            /** Demand Coverage Pct */
+            demand_coverage_pct: number;
+            /** Assumptions */
+            assumptions: string[];
+        };
+        /** BydelRow */
+        BydelRow: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Population */
+            population: number;
+            /** Suitable Roof M2 */
+            suitable_roof_m2: number;
+            /** Daily Yield Liters */
+            daily_yield_liters: number;
+            /** Demand Liters */
+            demand_liters: number;
+            /** Coverage Pct */
+            coverage_pct: number;
         };
         /** ClimateScenario */
         ClimateScenario: {
@@ -595,6 +644,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TreatmentResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bydel_api_bydel_get: {
+        parameters: {
+            query?: {
+                participation?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BydelResponse"];
                 };
             };
             /** @description Validation Error */

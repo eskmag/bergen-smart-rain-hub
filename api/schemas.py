@@ -199,3 +199,24 @@ class TreatmentResponse(BaseModel):
     cost_low_nok: int
     cost_high_nok: int
     note: str
+
+
+# ── Bydel potential (policy view) ────────────────────────────────────────────
+
+class BydelRow(BaseModel):
+    key: str
+    label: str
+    population: int
+    suitable_roof_m2: int
+    daily_yield_liters: int
+    demand_liters: int
+    coverage_pct: float
+
+
+class BydelResponse(BaseModel):
+    bydeler: list[BydelRow]
+    participation_pct: float
+    total_daily_liters: int
+    total_demand_liters: int
+    demand_coverage_pct: float
+    assumptions: list[str]

@@ -226,6 +226,46 @@
           }
         }
       }
+    },
+    "/api/bydel": {
+      "get": {
+        "summary": "Get Bydel",
+        "operationId": "get_bydel_api_bydel_get",
+        "parameters": [
+          {
+            "name": "participation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.2,
+              "title": "Participation"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BydelResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -388,6 +428,93 @@
           "description"
         ],
         "title": "BuildingPreset"
+      },
+      "BydelResponse": {
+        "properties": {
+          "bydeler": {
+            "items": {
+              "$ref": "#/components/schemas/BydelRow"
+            },
+            "type": "array",
+            "title": "Bydeler"
+          },
+          "participation_pct": {
+            "type": "number",
+            "title": "Participation Pct"
+          },
+          "total_daily_liters": {
+            "type": "integer",
+            "title": "Total Daily Liters"
+          },
+          "total_demand_liters": {
+            "type": "integer",
+            "title": "Total Demand Liters"
+          },
+          "demand_coverage_pct": {
+            "type": "number",
+            "title": "Demand Coverage Pct"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bydeler",
+          "participation_pct",
+          "total_daily_liters",
+          "total_demand_liters",
+          "demand_coverage_pct",
+          "assumptions"
+        ],
+        "title": "BydelResponse"
+      },
+      "BydelRow": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "population": {
+            "type": "integer",
+            "title": "Population"
+          },
+          "suitable_roof_m2": {
+            "type": "integer",
+            "title": "Suitable Roof M2"
+          },
+          "daily_yield_liters": {
+            "type": "integer",
+            "title": "Daily Yield Liters"
+          },
+          "demand_liters": {
+            "type": "integer",
+            "title": "Demand Liters"
+          },
+          "coverage_pct": {
+            "type": "number",
+            "title": "Coverage Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "population",
+          "suitable_roof_m2",
+          "daily_yield_liters",
+          "demand_liters",
+          "coverage_pct"
+        ],
+        "title": "BydelRow"
       },
       "ClimateScenario": {
         "properties": {

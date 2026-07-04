@@ -322,3 +322,27 @@ class TestStationSelection:
         assert default_collected > alt_collected, (
             f"Expected SN50540 ({default_collected} L) > SN50500 ({alt_collected} L)"
         )
+
+
+class TestBydelEndpoint:
+    def test_bydel_endpoint(self):
+        r = client.get("/api/bydel?participation=0.2")
+        assert r.status_code == 200
+        body = r.json()
+        assert len(body["bydeler"]) == 8
+        assert 0 < body["demand_coverage_pct"] < 1000
+        assert body["participation_pct"] == 0.2
+        assert body["assumptions"]
+
+    def test_bydel_default_participation(self):
+        r = client.get("/api/bydel")
+        assert r.status_code == 200
+        assert r.json()["participation_pct"] == 0.20
+
+    def test_bydel_zero_participation_422(self):
+        r = client.get("/api/bydel?participation=0")
+        assert r.status_code == 422
+
+    def test_bydel_over_one_participation_422(self):
+        r = client.get("/api/bydel?participation=1.5")
+        assert r.status_code == 422
