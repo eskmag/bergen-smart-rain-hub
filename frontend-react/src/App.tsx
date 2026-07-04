@@ -2,6 +2,7 @@ import { Routes, Route, useSearchParams } from 'react-router-dom'
 import Home from './pages/Home'
 import Beregn from './pages/Beregn'
 import Takkart from './pages/Takkart'
+import Potensial from './pages/Potensial'
 import { BeredskapsProvider } from './context/BeredskapsContext'
 import { TakkartProvider } from './context/TakkartContext'
 import './App.css'
@@ -21,6 +22,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/potensial" element={<Potensial />} />
       <Route
         path="/beregn"
         element={<BeregnRoute />}

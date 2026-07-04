@@ -15,6 +15,7 @@ export default function LandingNav() {
         <li><a href="#bakgrunn">Om prosjektet</a></li>
         <li><a href="#verktoy">Verktøy</a></li>
         <li><a href="#data">Data</a></li>
+        <li><Link to="/potensial">Potensial</Link></li>
       </ul>
       <Link to="/beregn" className="l-nav-cta">Beregn ditt bygg</Link>
     </nav>

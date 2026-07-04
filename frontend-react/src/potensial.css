@@ -1,0 +1,163 @@
+/* Potensial (bydel policy view) — reuses the landing design tokens. */
+
+.p-hero {
+  padding: 4rem 2.5rem 2.5rem;
+  max-width: 880px;
+}
+
+.p-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  line-height: 1.15;
+  margin: 0 0 0.75rem;
+  color: var(--color-text);
+}
+
+.p-sub {
+  color: var(--color-text-muted);
+  max-width: 60ch;
+  margin: 0 0 2rem;
+}
+
+.p-headline-card {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  margin-bottom: 1.75rem;
+}
+
+.p-headline-num {
+  font-family: var(--font-mono);
+  font-size: 2.2rem;
+  font-weight: 500;
+  color: var(--color-primary-dark);
+}
+
+.p-headline-label {
+  color: var(--color-text-muted);
+  max-width: 28ch;
+  font-size: 0.9rem;
+}
+
+.p-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 480px;
+}
+
+.p-slider-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.p-slider-row input[type='range'] {
+  flex: 1;
+  accent-color: var(--color-primary);
+}
+
+.p-slider-value {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  min-width: 3.5ch;
+  text-align: right;
+}
+
+.p-slider-hint {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0.5rem 0 0;
+}
+
+.p-content {
+  padding: 0 2.5rem 4rem;
+  display: grid;
+  gap: 1.5rem;
+  max-width: 880px;
+}
+
+.p-chart-card,
+.p-table-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+}
+
+.p-card-title {
+  font-size: 1rem;
+  margin: 0 0 1rem;
+}
+
+.p-placeholder {
+  color: var(--color-text-muted);
+}
+
+.p-table-scroll {
+  overflow-x: auto;
+}
+
+.p-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.p-table th,
+.p-table td {
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.p-table .p-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.p-table tfoot td {
+  font-weight: 600;
+  border-bottom: none;
+}
+
+.p-assumptions {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  font-size: 0.9rem;
+}
+
+.p-assumptions summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.p-assumptions ul {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+  color: var(--color-text-muted);
+}
+
+.p-assumptions-note {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  margin: 0.75rem 0 0;
+}
+
+@media (max-width: 640px) {
+  .p-hero,
+  .p-content {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .p-headline-card {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
