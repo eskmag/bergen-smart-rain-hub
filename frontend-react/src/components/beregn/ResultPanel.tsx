@@ -4,6 +4,7 @@ import { useBeredskap } from '../../context/BeredskapsContext'
 import SimulationChart from '../shared/SimulationChart'
 import DrySpellsList from '../shared/DrySpellsList'
 import { WaterQualityCard } from '../shared/WaterQualityCard'
+import { EnergyCard } from '../shared/EnergyCard'
 import { YearlyOutcomes } from '../shared/YearlyOutcomes'
 import { BUILDING_OPTIONS } from './buildingTypes'
 
@@ -22,6 +23,7 @@ export default function ResultPanel() {
     buildingKey,
     simResult, isSimPending,
     population, scale, annualLiters, usageLevel, roofMaterial, station,
+    roofPerBuilding, numBuildings, heightM,
   } = useBeredskap()
 
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
@@ -144,6 +146,15 @@ export default function ResultPanel() {
 
       {/* Water quality */}
       <WaterQualityCard material={roofMaterial} scale={scale} classPrefix="k" />
+
+      {/* Energy — a talking point at scale; hidden for household (Phase 5 precedent) */}
+      {scale !== 'household' && (
+        <EnergyCard
+          totalRoofM2={roofPerBuilding * numBuildings}
+          heightM={heightM}
+          classPrefix="k"
+        />
+      )}
 
       {/* Historical year outcomes */}
       {simResult?.yearly_outcomes && (

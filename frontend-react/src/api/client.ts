@@ -29,6 +29,7 @@ export type TreatmentResponse = components['schemas']['TreatmentResponse']
 export type StationSchema = components['schemas']['StationSchema']
 export type BydelRow = components['schemas']['BydelRow']
 export type BydelResponse = components['schemas']['BydelResponse']
+export type EnergyResponse = components['schemas']['EnergyResponse']
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, init)
@@ -64,4 +65,7 @@ export const api = {
 
   bydel: (participation: number) =>
     apiFetch<BydelResponse>(`/api/bydel?participation=${participation}`),
+
+  energy: (roofAreaM2: number, heightM: number) =>
+    apiFetch<EnergyResponse>(`/api/energy?roof_area_m2=${roofAreaM2}&height_m=${heightM}`),
 }
