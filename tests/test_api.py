@@ -347,3 +347,29 @@ class TestBydelEndpoint:
     def test_bydel_over_one_participation_422(self):
         r = client.get("/api/bydel?participation=1.5")
         assert r.status_code == 422
+
+
+class TestEnergyEndpoint:
+    def test_energy_endpoint(self):
+        r = client.get("/api/energy?roof_area_m2=120&height_m=6&annual_rainfall_mm=2250")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["annual_energy_kwh"] > 0
+        assert body["annual_liters"] == 2250 * 120
+        assert set(body["co2_offset_g"]) == {"NO", "EU"}
+        assert body["co2_offset_g"]["EU"] > body["co2_offset_g"]["NO"]
+        assert body["equivalents"]["phone_charges"] > 0
+
+    def test_energy_defaults_from_config(self):
+        # height and rainfall fall back to the shared backend defaults
+        r = client.get("/api/energy?roof_area_m2=120")
+        assert r.status_code == 200
+        assert r.json()["annual_energy_kwh"] > 0
+
+    def test_energy_negative_area_422(self):
+        r = client.get("/api/energy?roof_area_m2=-5")
+        assert r.status_code == 422
+
+    def test_energy_zero_height_422(self):
+        r = client.get("/api/energy?roof_area_m2=120&height_m=0")
+        assert r.status_code == 422

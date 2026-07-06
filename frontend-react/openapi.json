@@ -266,6 +266,65 @@
           }
         }
       }
+    },
+    "/api/energy": {
+      "get": {
+        "summary": "Get Energy",
+        "operationId": "get_energy_api_energy_get",
+        "parameters": [
+          {
+            "name": "roof_area_m2",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "title": "Roof Area M2"
+            }
+          },
+          {
+            "name": "height_m",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 5.0,
+              "title": "Height M"
+            }
+          },
+          {
+            "name": "annual_rainfall_mm",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 2250,
+              "title": "Annual Rainfall Mm"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnergyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -864,6 +923,40 @@
           "total_rain_mm"
         ],
         "title": "DrySpell"
+      },
+      "EnergyResponse": {
+        "properties": {
+          "annual_liters": {
+            "type": "number",
+            "title": "Annual Liters"
+          },
+          "annual_energy_kwh": {
+            "type": "number",
+            "title": "Annual Energy Kwh"
+          },
+          "co2_offset_g": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Co2 Offset G"
+          },
+          "equivalents": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Equivalents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "annual_liters",
+          "annual_energy_kwh",
+          "co2_offset_g",
+          "equivalents"
+        ],
+        "title": "EnergyResponse"
       },
       "HTTPValidationError": {
         "properties": {

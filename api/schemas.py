@@ -222,3 +222,12 @@ class BydelResponse(BaseModel):
     persons_covered: int
     roof_m2_per_capita: float
     assumptions: list[str]
+
+
+# ── Energy (BKK angle) ───────────────────────────────────────────────────────
+
+class EnergyResponse(BaseModel):
+    annual_liters: float
+    annual_energy_kwh: float
+    co2_offset_g: dict[str, float]
+    equivalents: dict[str, float]
