@@ -40,20 +40,20 @@ export default function Potensial() {
         <div>
           <p className="l-eyebrow">Policy-visning · Kommune og beredskap</p>
           <h1 className="l-hero-title">
-            Kva om <strong>kvart femte tak</strong><br />
-            i Bergen samla regnvatn?
+            Hva om <strong>hvert femte tak</strong><br />
+            i Bergen samlet regnvann?
           </h1>
           <p className="l-hero-sub">
-            Bydel for bydel: kor mange menneske kan få dekt WHO sitt
-            overlevingsminimum frå takflatene som allereie finst — utan nye bygg,
-            berre oppsamling frå ein del av dei.
+            Bydel for bydel: hvor mange mennesker kan få dekket WHOs
+            overlevelsesminimum fra takflatene som allerede finnes — uten nye bygg,
+            bare oppsamling fra en del av dem.
           </p>
           <div className="l-hero-actions">
             <button
               className="l-btn-ghost"
               onClick={() => document.getElementById('metode')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Slik reknar vi
+              Slik regner vi
               <svg className="l-icon-sm" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M19 9l-7 7-7-7" />
               </svg>
@@ -64,27 +64,27 @@ export default function Potensial() {
           <div className="l-hero-stat-main">
             <div className="l-hsm-num">{data ? `≈ ${fmt(data.persons_covered)}` : '—'}</div>
             <div className="l-hsm-label">
-              Menneske dekt til WHO-minimum · {participation} % deltaking
+              Mennesker dekket til WHO-minimum · {participation} % deltakelse
             </div>
           </div>
           <div className="l-hero-stat-grid">
             <div className="l-hsg-item">
               <div className="l-hsg-num">{data ? `${fmt(data.demand_coverage_pct, 1)} %` : '—'}</div>
-              <div className="l-hsg-label">Av heile byens minimumsbehov</div>
+              <div className="l-hsg-label">Av hele byens minimumsbehov</div>
             </div>
             <div className="l-hsg-item">
               <div className="l-hsg-num">
                 {data ? `${fmt(data.total_daily_liters / 1_000_000, 1)} mill. L` : '—'}
               </div>
-              <div className="l-hsg-label">Oppsamla per dag i snitt</div>
+              <div className="l-hsg-label">Oppsamlet per dag i snitt</div>
             </div>
             <div className="l-hsg-item">
               <div className="l-hsg-num">{data ? data.bydeler.length : '—'}</div>
-              <div className="l-hsg-label">Bydelar analysert</div>
+              <div className="l-hsg-label">Bydeler analysert</div>
             </div>
             <div className="l-hsg-item">
               <div className="l-hsg-num">{totalPopulation ? fmt(totalPopulation) : '—'}</div>
-              <div className="l-hsg-label">Innbyggarar totalt</div>
+              <div className="l-hsg-label">Innbyggere totalt</div>
             </div>
           </div>
         </div>
@@ -93,10 +93,10 @@ export default function Potensial() {
       {/* ── Slider strip ── */}
       <section className="p-slider-strip">
         <div className="p-slider-copy">
-          <div className="p-slider-title">Deltakingsgrad: kor mange tak blir med?</div>
+          <div className="p-slider-title">Deltakelsesgrad: hvor mange tak blir med?</div>
           <div className="p-slider-hint">
-            Deltaking = delen av det egna takarealet som faktisk blir kopla til
-            oppsamling. 20 % svarar omtrent til kvart femte tak i byen.
+            Deltakelse = andelen av det egnede takarealet som faktisk blir koblet til
+            oppsamling. 20 % svarer omtrent til hvert femte tak i byen.
           </div>
         </div>
         <label className="p-slider-control">
@@ -107,7 +107,7 @@ export default function Potensial() {
             step={5}
             value={participation}
             onChange={(e) => setParticipation(Number(e.target.value))}
-            aria-label="Deltakingsgrad i prosent"
+            aria-label="Deltakelsesgrad i prosent"
           />
           <span className="p-slider-value">{participation} %</span>
         </label>
@@ -115,25 +115,25 @@ export default function Potensial() {
 
       {/* ── Method narrative ── */}
       <section className="l-narrative" id="metode">
-        <p className="l-section-eyebrow">Slik reknar vi</p>
+        <p className="l-section-eyebrow">Slik regner vi</p>
         <div className="l-narrative-steps">
           <div className="l-narrative-step">
             <div className="l-step-index">01</div>
             <h3 className="l-step-title">Takareal per bydel</h3>
             <p className="l-step-body">
-              Kvar innbyggar reknast å ha {data ? fmt(data.roof_m2_per_capita) : '—'} m²
-              egna takflate — eit konservativt anslag. Tette bydelar som Bergenhus og
-              Årstad får ein reduksjonsfaktor, sidan blokker deler tak på fleire.
-              Deltakingsgraden avgjer kor mykje av dette som faktisk blir kopla til.
+              Hver innbygger regnes å ha {data ? fmt(data.roof_m2_per_capita) : '—'} m²
+              egnet takflate — et konservativt anslag. Tette bydeler som Bergenhus og
+              Årstad får en reduksjonsfaktor, siden blokker deler tak på flere.
+              Deltakelsesgraden avgjør hvor mye av dette som faktisk blir koblet til.
             </p>
           </div>
           <div className="l-narrative-step">
             <div className="l-step-index">02</div>
-            <h3 className="l-step-title">Nedbør blir til vatn</h3>
+            <h3 className="l-step-title">Nedbør blir til vann</h3>
             <p className="l-step-body">
               Normalnedbøren i Bergen er {rainfallMm ? fmt(rainfallMm) : '—'} mm i året —
-              éin millimeter regn gir éin liter per kvadratmeter tak. Med{' '}
-              {efficiencyPct ?? '—'} % systemvirkningsgrad blir det gjennomsnittleg
+              én millimeter regn gir én liter per kvadratmeter tak. Med{' '}
+              {efficiencyPct ?? '—'} % systemvirkningsgrad blir det gjennomsnittlig
               daglig oppsamling per bydel.
             </p>
           </div>
@@ -141,9 +141,9 @@ export default function Potensial() {
             <div className="l-step-index">03</div>
             <h3 className="l-step-title">Målt mot krisebehovet</h3>
             <p className="l-step-body">
-              WHO sitt overlevingsminimum er {whoLiters ?? '—'} liter per person per dag.
-              Oppsamlinga delt på behovet gir dekningsgraden — og fordi taka samlar meir
-              enn minimumsbehovet, kan dekninga passere 100 %. Det er ikkje ein feil,
+              WHOs overlevelsesminimum er {whoLiters ?? '—'} liter per person per dag.
+              Oppsamlingen delt på behovet gir dekningsgraden — og fordi takene samler mer
+              enn minimumsbehovet, kan dekningen passere 100 %. Det er ikke en feil,
               det er margin.
             </p>
           </div>
@@ -155,12 +155,12 @@ export default function Potensial() {
         <p className="l-section-eyebrow">Resultat per bydel</p>
         <div className="p-results-grid">
           <div className="p-chart-card">
-            <h2 className="p-card-title">Dekningsgrad ved {participation} % deltaking</h2>
+            <h2 className="p-card-title">Dekningsgrad ved {participation} % deltakelse</h2>
             <p className="p-card-note">
-              Tette bydelar har mindre takareal per innbyggar — difor ligg Bergenhus lågast.
+              Tette bydeler har mindre takareal per innbygger — derfor ligger Bergenhus lavest.
             </p>
             {isLoading || !data ? (
-              <p className="p-placeholder">Bereknar…</p>
+              <p className="p-placeholder">Beregner…</p>
             ) : (
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart
@@ -187,14 +187,14 @@ export default function Potensial() {
 
           {data && (
             <div className="p-table-card">
-              <h2 className="p-card-title">Tala bak søylene</h2>
+              <h2 className="p-card-title">Tallene bak søylene</h2>
               <div className="p-table-scroll">
                 <table className="p-table">
                   <thead>
                     <tr>
                       <th>Bydel</th>
-                      <th className="p-num">Innbyggarar</th>
-                      <th className="p-num">Egna takareal (m²)</th>
+                      <th className="p-num">Innbyggere</th>
+                      <th className="p-num">Egnet takareal (m²)</th>
                       <th className="p-num">Oppsamling (L/dag)</th>
                       <th className="p-num">Behov (L/dag)</th>
                       <th className="p-num">Dekning</th>
@@ -214,7 +214,7 @@ export default function Potensial() {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td>Heile Bergen</td>
+                      <td>Hele Bergen</td>
                       <td className="p-num">{totalPopulation ? fmt(totalPopulation) : ''}</td>
                       <td className="p-num"></td>
                       <td className="p-num">{fmt(data.total_daily_liters)}</td>
@@ -232,32 +232,32 @@ export default function Potensial() {
       {/* ── Assumptions / data quality ── */}
       <section className="l-data-section">
         <div>
-          <p className="l-section-eyebrow">Forutsetningar</p>
-          <h2 className="l-data-title">Grove tal, ærleg presenterte.</h2>
+          <p className="l-section-eyebrow">Forutsetninger</p>
+          <h2 className="l-data-title">Grove tall, ærlig presentert.</h2>
           <p className="l-data-body">
-            Takareala er førsteordens estimat: folketal gonger eit antatt egna areal per
-            innbyggar. Det er ein dokumentert antaking — ikkje målte tak. Neste steg er å
-            erstatte anslaget med reelle bygningsfotavtrykk frå Kartverket (FKB-bygning).
-            Fram til då bør tala lesast som storleiksordenar: dei viser at potensialet er
-            reelt og stort, ikkje nøyaktig kor stort.
+            Takarealene er førsteordens estimater: folketall ganger et antatt egnet areal per
+            innbygger. Det er en dokumentert antakelse — ikke målte tak. Neste steg er å
+            erstatte anslaget med reelle bygningsfotavtrykk fra Kartverket (FKB-bygning).
+            Frem til da bør tallene leses som størrelsesordener: de viser at potensialet er
+            reelt og stort, ikke nøyaktig hvor stort.
           </p>
         </div>
         <div className="l-data-facts">
           <div className="l-data-fact">
             <div className="l-df-num">{data ? `${fmt(data.roof_m2_per_capita)} m²` : '—'}</div>
-            <div className="l-df-label">Antatt egna takareal per innbyggar (redusert i tette bydelar)</div>
+            <div className="l-df-label">Antatt egnet takareal per innbygger (redusert i tette bydeler)</div>
           </div>
           <div className="l-data-fact">
             <div className="l-df-num">{rainfallMm ? `${fmt(rainfallMm)} mm` : '—'}</div>
-            <div className="l-df-label">Normalnedbør per år, jamt fordelt (årsgjennomsnitt)</div>
+            <div className="l-df-label">Normalnedbør per år, jevnt fordelt (årsgjennomsnitt)</div>
           </div>
           <div className="l-data-fact">
             <div className="l-df-num">{efficiencyPct ? `${efficiencyPct} %` : '—'}</div>
-            <div className="l-df-label">Systemvirkningsgrad — realistisk, ikkje optimistisk</div>
+            <div className="l-df-label">Systemvirkningsgrad — realistisk, ikke optimistisk</div>
           </div>
           <div className="l-data-fact">
             <div className="l-df-num">{whoLiters ? `${whoLiters} L` : '—'}</div>
-            <div className="l-df-label">WHO overlevingsminimum per person per dag</div>
+            <div className="l-df-label">WHO overlevelsesminimum per person per dag</div>
           </div>
         </div>
       </section>
@@ -265,8 +265,8 @@ export default function Potensial() {
       {/* ── CTA + footer ── */}
       <section className="l-cta-section">
         <div className="l-cta-left">
-          <p className="l-cta-eyebrow">Frå by til bygg</p>
-          <h2 className="l-cta-title">Kva betyr dette for ditt bygg?</h2>
+          <p className="l-cta-eyebrow">Fra by til bygg</p>
+          <h2 className="l-cta-title">Hva betyr dette for ditt bygg?</h2>
           <p className="l-cta-sub">Kalkulatoren simulerer tanknivå dag for dag med ekte nedbørsdata</p>
         </div>
         <div className="l-cta-right">
@@ -276,16 +276,16 @@ export default function Potensial() {
             </svg>
             Beregn ditt bygg
           </Link>
-          <p className="l-cta-note">Ekte nedbørsdata frå MET · WHO-standardar</p>
+          <p className="l-cta-note">Ekte nedbørsdata fra MET · WHO-standarder</p>
         </div>
       </section>
       <footer className="l-footer">
         <span className="l-footer-left">
-          © 2026 Bergen Smart Rain Hub · Folketal: SSB / Bergen kommune bydelsfakta (2024)
+          © 2026 Bergen Smart Rain Hub · Folketall: SSB / Bergen kommune bydelsfakta (2024)
         </span>
         <ul className="l-footer-links">
-          <li><Link to="/">Framsida</Link></li>
-          <li><a href="/#data">Datakjelde</a></li>
+          <li><Link to="/">Forsiden</Link></li>
+          <li><a href="/#data">Datakilde</a></li>
         </ul>
       </footer>
     </div>

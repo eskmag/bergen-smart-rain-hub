@@ -33,7 +33,7 @@ export function YearlyOutcomes({ outcomes, classPrefix: p, stationLabel }: Yearl
     { label: 'Verste år', row: worst },
   ]
 
-  const headline = `Basert på ${outcomes.length} år med målte data${stationLabel ? ` frå ${stationLabel}` : ''}.`
+  const headline = `Basert på ${outcomes.length} år med målte data${stationLabel ? ` fra ${stationLabel}` : ''}.`
 
   return (
     <div className={`${p}-dry-spells-card`}>

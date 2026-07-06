@@ -38,7 +38,7 @@ export function tankRecommendations(
 ): TankRec[] {
   const dailyNeed = people * lPerPersonPerDay
   return days.map((d, i) => ({
-    label: TANK_REC_LABELS[i] ?? `${d} dagar`,
+    label: TANK_REC_LABELS[i] ?? `${d} dager`,
     days: d,
     liters: Math.ceil((dailyNeed * d) / 100) * 100,
   }))
