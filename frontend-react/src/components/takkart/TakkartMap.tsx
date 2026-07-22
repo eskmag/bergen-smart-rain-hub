@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet'
 import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import '@geoman-io/leaflet-geoman-free'
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
 import type { Feature, Polygon } from 'geojson'
 
 // Fix Vite + Leaflet default marker icon path resolution

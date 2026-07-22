@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { Feature, Polygon } from 'geojson'
+import '../../takkart.css'
 
 interface AddressSearchProps {
   onPolygon: (feature: Feature<Polygon> | null) => void
