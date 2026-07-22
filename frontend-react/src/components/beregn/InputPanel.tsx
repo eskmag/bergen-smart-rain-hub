@@ -26,9 +26,8 @@ const TANK_MAX = 100000
 const TANK_PRESET_LABELS = ['1 uke', '30 dager', '2 mnd']
 
 const ROOF_SOURCES = [
-  { key: 'map', label: 'Kart' },
-  { key: 'manual', label: 'Manuelt' },
   { key: 'preset', label: 'Bygningstype' },
+  { key: 'map', label: 'Kart' },
 ] as const
 
 function clampTank(v: number) {
@@ -68,12 +67,6 @@ export default function InputPanel() {
       setPopulation(preset.default_people)
     }
     setNumBuildings(1)
-  }
-
-  function handleAreaEdit(value: number) {
-    setRoofPerBuilding(Math.max(0, Math.round(value)))
-    setRoofSource('manual')
-    setPolygon(null)
   }
 
   function handleUseRoof(feature: Feature<Polygon>) {
@@ -118,14 +111,7 @@ export default function InputPanel() {
         </div>
 
         <div className="k-roof-area-field">
-          <input
-            className="k-roof-area-input"
-            type="number"
-            min={0}
-            step={5}
-            value={roofPerBuilding}
-            onChange={e => handleAreaEdit(Number(e.target.value))}
-          />
+          <span className="k-roof-area-value">{fmt(roofPerBuilding)}</span>
           <span className="k-roof-area-unit">m²</span>
         </div>
 
@@ -141,10 +127,6 @@ export default function InputPanel() {
               <span className="k-roof-map-hint">Takflate hentet fra kart</span>
             )}
           </div>
-        )}
-
-        {roofSource === 'manual' && (
-          <p className="k-roof-hint">Skriv inn takarealet direkte i feltet over.</p>
         )}
 
         {roofSource === 'preset' && (

@@ -5,7 +5,7 @@ import type { Feature, Polygon } from 'geojson'
 import { api } from '../api/client'
 import type { BeredskapsResponse, ScaleSchema } from '../api/client'
 
-export type RoofSource = 'preset' | 'manual' | 'map'
+export type RoofSource = 'preset' | 'map'
 
 interface BeredskapsState {
   buildingKey: string

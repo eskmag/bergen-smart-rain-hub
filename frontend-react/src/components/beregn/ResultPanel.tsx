@@ -39,9 +39,7 @@ export default function ResultPanel() {
   const roofDescriptor =
     roofSource === 'preset'
       ? BUILDING_OPTIONS.find(o => o.key === buildingKey)?.label.toLowerCase() ?? 'bygg'
-      : roofSource === 'map'
-        ? `${fmt(totalRoofM2)} m² tak (målt)`
-        : `${fmt(totalRoofM2)} m² tak`
+      : `${fmt(totalRoofM2)} m² tak (målt)`
 
   const stationLabel = config?.stations.find(s => s.id === station)?.label
 
