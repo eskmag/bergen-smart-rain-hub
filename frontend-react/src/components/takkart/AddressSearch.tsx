@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { useTakkart } from '../../context/TakkartContext'
 import type { Feature, Polygon } from 'geojson'
+
+interface AddressSearchProps {
+  onPolygon: (feature: Feature<Polygon> | null) => void
+  onFlyTo: (point: [number, number] | null) => void
+}
 
 interface GeonorgeAddress {
   adressetekst: string
@@ -76,8 +80,7 @@ async function fetchFootprint(
   return best
 }
 
-export default function AddressSearch() {
-  const { setPolygon, setFlyToPoint } = useTakkart()
+export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps) {
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<GeonorgeAddress[]>([])
   const [loading, setLoading] = useState(false)
@@ -123,12 +126,12 @@ export default function AddressSearch() {
     setOpen(false)
     setError(null)
     const { lat, lon } = addr.representasjonspunkt
-    setFlyToPoint([lat, lon])
+    onFlyTo([lat, lon])
     setLoading(true)
     try {
       const footprint = await fetchFootprint(lat, lon)
       if (footprint) {
-        setPolygon(footprint)
+        onPolygon(footprint)
       } else {
         setError('Fant ingen bygningsfotavtrykk i nærheten. Prøv å måle manuelt.')
       }

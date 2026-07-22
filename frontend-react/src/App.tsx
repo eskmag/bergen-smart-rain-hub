@@ -1,10 +1,8 @@
-import { Routes, Route, useSearchParams } from 'react-router-dom'
+import { Routes, Route, Navigate, useSearchParams } from 'react-router-dom'
 import Home from './pages/Home'
 import Beregn from './pages/Beregn'
-import Takkart from './pages/Takkart'
 import Potensial from './pages/Potensial'
 import { BeredskapsProvider } from './context/BeredskapsContext'
-import { TakkartProvider } from './context/TakkartContext'
 import './App.css'
 
 function BeregnRoute() {
@@ -23,18 +21,9 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/potensial" element={<Potensial />} />
-      <Route
-        path="/beregn"
-        element={<BeregnRoute />}
-      />
-      <Route
-        path="/takkart"
-        element={
-          <TakkartProvider>
-            <Takkart />
-          </TakkartProvider>
-        }
-      />
+      <Route path="/beregn" element={<BeregnRoute />} />
+      {/* /takkart merged into the calculator (roof measurement is now a mode of /beregn) */}
+      <Route path="/takkart" element={<Navigate to="/beregn" replace />} />
     </Routes>
   )
 }

@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../../api/client'
 import { useBeredskap } from '../../context/BeredskapsContext'
 import { BUILDING_OPTIONS } from './buildingTypes'
+import RoofMapModal from './RoofMapModal'
+import type { Feature, Polygon } from 'geojson'
 
 function fmt(n: number) {
   return n.toLocaleString('nb-NO', { maximumFractionDigits: 0 })
@@ -23,6 +25,12 @@ const TANK_MAX = 100000
 // Labels for the tank tiers served by /api/config (defaults.tank_recommendation_days)
 const TANK_PRESET_LABELS = ['1 uke', '30 dager', '2 mnd']
 
+const ROOF_SOURCES = [
+  { key: 'map', label: 'Kart' },
+  { key: 'manual', label: 'Manuelt' },
+  { key: 'preset', label: 'Bygningstype' },
+] as const
+
 function clampTank(v: number) {
   return Math.min(TANK_MAX, Math.max(TANK_MIN, Math.round(v / 500) * 500))
 }
@@ -31,8 +39,9 @@ export default function InputPanel() {
   const {
     buildingKey: selectedKey, setBuildingKey,
     population, setPopulation,
-    setRoofPerBuilding, setHeightM, setNumBuildings,
-    setScale,
+    roofPerBuilding, setRoofPerBuilding, setHeightM, setNumBuildings,
+    roofSource, setRoofSource,
+    polygon, setPolygon,
     tankLiters, setTankLiters,
     efficiency, setEfficiency,
     usageLevel, setUsageLevel,
@@ -42,6 +51,7 @@ export default function InputPanel() {
 
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [mapOpen, setMapOpen] = useState(false)
 
   const waterNeedPerDay =
     config?.water_needs?.[usageLevel] ?? (usageLevel === 'normal_usage' ? 150 : 13)
@@ -49,15 +59,26 @@ export default function InputPanel() {
 
   function handleBuildingSelect(key: string) {
     const preset = config?.building_presets.find(p => p.key === key)
-    const opt = BUILDING_OPTIONS.find(o => o.key === key)!
     setBuildingKey(key)
+    setRoofSource('preset')
+    setPolygon(null)
     if (preset) {
       setRoofPerBuilding(preset.roof_area_m2)
       setHeightM(preset.height_m)
       setPopulation(preset.default_people)
     }
-    setScale(opt.scale)
     setNumBuildings(1)
+  }
+
+  function handleAreaEdit(value: number) {
+    setRoofPerBuilding(Math.max(0, Math.round(value)))
+    setRoofSource('manual')
+    setPolygon(null)
+  }
+
+  function handleUseRoof(feature: Feature<Polygon>) {
+    setPolygon(feature)  // context derives area + sets roofSource='map'
+    setMapOpen(false)
   }
 
   function adjustPeople(dir: 1 | -1) {
@@ -77,25 +98,70 @@ export default function InputPanel() {
     <div className="k-input-panel">
       <p className="k-panel-eyebrow">Konfigurer beregningen</p>
 
-      {/* Building type */}
+      {/* Roof area — the source of truth */}
       <div className="k-input-section">
         <div className="k-input-label">
-          Bygningstype
-          <span className="k-input-hint">— velg det som passer best</span>
+          Takareal
+          <span className="k-input-hint">— grunnlaget for hele beregningen</span>
         </div>
-        <div className="k-building-grid">
-          {BUILDING_OPTIONS.map(opt => (
+
+        <div className="k-roof-tabs">
+          {ROOF_SOURCES.map(s => (
             <button
-              key={opt.key}
-              className={`k-building-opt${selectedKey === opt.key ? ' selected' : ''}`}
-              onClick={() => handleBuildingSelect(opt.key)}
+              key={s.key}
+              className={`k-roof-tab${roofSource === s.key ? ' active' : ''}`}
+              onClick={() => setRoofSource(s.key)}
             >
-              <span className="k-bo-icon">{opt.icon}</span>
-              <span className="k-bo-name">{opt.label}</span>
-              <span className="k-bo-detail">{opt.detail}</span>
+              {s.label}
             </button>
           ))}
         </div>
+
+        <div className="k-roof-area-field">
+          <input
+            className="k-roof-area-input"
+            type="number"
+            min={0}
+            step={5}
+            value={roofPerBuilding}
+            onChange={e => handleAreaEdit(Number(e.target.value))}
+          />
+          <span className="k-roof-area-unit">m²</span>
+        </div>
+
+        {roofSource === 'map' && (
+          <div className="k-roof-map-row">
+            <button className="k-roof-map-btn" onClick={() => setMapOpen(true)}>
+              {polygon ? 'Endre taket på kart' : 'Mål på kart'}
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+            {polygon && (
+              <span className="k-roof-map-hint">Takflate hentet fra kart</span>
+            )}
+          </div>
+        )}
+
+        {roofSource === 'manual' && (
+          <p className="k-roof-hint">Skriv inn takarealet direkte i feltet over.</p>
+        )}
+
+        {roofSource === 'preset' && (
+          <div className="k-building-grid">
+            {BUILDING_OPTIONS.map(opt => (
+              <button
+                key={opt.key}
+                className={`k-building-opt${selectedKey === opt.key ? ' selected' : ''}`}
+                onClick={() => handleBuildingSelect(opt.key)}
+              >
+                <span className="k-bo-icon">{opt.icon}</span>
+                <span className="k-bo-name">{opt.label}</span>
+                <span className="k-bo-detail">{opt.detail}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* People */}
@@ -204,6 +270,14 @@ export default function InputPanel() {
             </select>
           </div>
         </div>
+      )}
+
+      {mapOpen && (
+        <RoofMapModal
+          initialPolygon={polygon}
+          onUse={handleUseRoof}
+          onClose={() => setMapOpen(false)}
+        />
       )}
     </div>
   )

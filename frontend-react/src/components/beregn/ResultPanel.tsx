@@ -20,7 +20,7 @@ function verdictFor(daysTankEmpty: number) {
 
 export default function ResultPanel() {
   const {
-    buildingKey,
+    buildingKey, roofSource,
     simResult, isSimPending,
     population, scale, annualLiters, usageLevel, roofMaterial, station,
     roofPerBuilding, numBuildings, heightM,
@@ -35,8 +35,13 @@ export default function ResultPanel() {
   })
   const costs = costsQuery.data
 
-  const buildingLabel =
-    BUILDING_OPTIONS.find(o => o.key === buildingKey)?.label.toLowerCase() ?? 'bygg'
+  const totalRoofM2 = roofPerBuilding * numBuildings
+  const roofDescriptor =
+    roofSource === 'preset'
+      ? BUILDING_OPTIONS.find(o => o.key === buildingKey)?.label.toLowerCase() ?? 'bygg'
+      : roofSource === 'map'
+        ? `${fmt(totalRoofM2)} m² tak (målt)`
+        : `${fmt(totalRoofM2)} m² tak`
 
   const stationLabel = config?.stations.find(s => s.id === station)?.label
 
@@ -63,7 +68,7 @@ export default function ResultPanel() {
       {/* Hero */}
       <div className="k-result-hero">
         <div className="k-rh-verdict">
-          Beredskapsforsyning · {fmt(population)} {population === 1 ? 'person' : 'personer'} · {buildingLabel}
+          Beredskapsforsyning · {fmt(population)} {population === 1 ? 'person' : 'personer'} · {roofDescriptor}
         </div>
         <div className="k-rh-number">{loading ? '—' : fmt(supplyDays)}</div>
         <div className="k-rh-unit">dager med trygg vannforsyning</div>
@@ -77,6 +82,10 @@ export default function ResultPanel() {
 
       {/* Metrics */}
       <div className="k-metrics-row">
+        <div className="k-metric-card">
+          <div className="k-mc-label">Takflate</div>
+          <div className="k-mc-val">{fmt(totalRoofM2)} <span className="k-mc-unit">m²</span></div>
+        </div>
         <div className="k-metric-card">
           <div className="k-mc-label">Årlig oppsamling</div>
           <div className="k-mc-val">{loading ? '—' : fmt(totalLiters)} <span className="k-mc-unit">L</span></div>

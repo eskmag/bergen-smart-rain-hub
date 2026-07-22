@@ -12,9 +12,10 @@ export default function LandingTools() {
           <div className="l-tool-index">01 · Kalkulator</div>
           <h3 className="l-tool-title">Beregn ditt bygg</h3>
           <p className="l-tool-body">
-            Velg bygningstype og antall personer. Se umiddelbart hvor mange dager regnvann kan
-            dekke vannbehovet, tanknivå dag for dag gjennom året, og hvilke tørkeperioder som
-            kan true forsyningen — alt basert på WHO-standarder og ekte nedbørsdata fra Bergen Florida.
+            Sett takarealet slik du vil — mål taket på kart, skriv inn arealet, eller velg en
+            bygningstype. Se umiddelbart hvor mange dager regnvann kan dekke vannbehovet, tanknivå
+            dag for dag gjennom året, og hvilke tørkeperioder som kan true forsyningen — alt basert
+            på WHO-standarder og ekte nedbørsdata fra Bergen Florida.
           </p>
           <Link to="/beregn" className="l-tool-link">
             Åpne kalkulator
@@ -24,15 +25,15 @@ export default function LandingTools() {
           </Link>
         </div>
         <div className="l-tool-cell">
-          <div className="l-tool-index">02 · Takkart</div>
+          <div className="l-tool-index">02 · Takmåling</div>
           <h3 className="l-tool-title">Mål takflaten din</h3>
           <p className="l-tool-body">
             Søk opp adressen din og få takflaten hentet automatisk fra kartet, eller tegn et polygon
-            manuelt. Kalkulatoren regner ut årsoppsamling og beredskapsdager direkte fra det målte
-            takarealet — uten at du trenger å velge bygningstype.
+            manuelt. Målingen er nå en del av kalkulatoren — det målte takarealet driver årsoppsamling
+            og beredskapsdager direkte, uten at du trenger å velge bygningstype.
           </p>
-          <Link to="/takkart" className="l-tool-link">
-            Åpne takkart
+          <Link to="/beregn" className="l-tool-link">
+            Mål taket i kalkulatoren
             <svg className="l-icon-sm" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
