@@ -231,3 +231,34 @@ class EnergyResponse(BaseModel):
     annual_energy_kwh: float
     co2_offset_g: dict[str, float]
     equivalents: dict[str, float]
+
+
+# ── Validation (2018 dry-spring backtest) ────────────────────────────────────
+
+class LongestSpell(BaseModel):
+    days: int
+    start: str | None
+    end: str | None
+
+
+class TankTier(BaseModel):
+    label: str
+    liters: int
+    days_tank_empty: int
+    min_tank_liters: int
+
+
+class ValidationCase(BaseModel):
+    roof_m2: int
+    population: int
+    efficiency: float
+
+
+class ValidationResponse(BaseModel):
+    station_id: str
+    year: int
+    total_rainfall_mm: float
+    n_dry_spells: int
+    longest_dry_spell: LongestSpell
+    case: ValidationCase
+    tiers: list[TankTier]

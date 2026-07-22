@@ -373,3 +373,13 @@ class TestEnergyEndpoint:
     def test_energy_zero_height_422(self):
         r = client.get("/api/energy?roof_area_m2=120&height_m=0")
         assert r.status_code == 422
+
+
+class TestValidation:
+    def test_validation_returns_2018_backtest(self):
+        r = client.get("/api/validation")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["year"] == 2018
+        assert body["longest_dry_spell"]["days"] >= 20
+        assert len(body["tiers"]) == 3

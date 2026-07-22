@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import config, observations, simulate, costs, treatment, bydel, energy
+from api.routers import config, observations, simulate, costs, treatment, bydel, energy, validation
 
 app = FastAPI(title="Bergen Smart Rain Hub API", version="1.0.0")
 
@@ -24,3 +24,4 @@ app.include_router(costs.router, prefix="/api")
 app.include_router(treatment.router, prefix="/api")
 app.include_router(bydel.router, prefix="/api")
 app.include_router(energy.router, prefix="/api")
+app.include_router(validation.router, prefix="/api")

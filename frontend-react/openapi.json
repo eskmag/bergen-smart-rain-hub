@@ -325,6 +325,25 @@
           }
         }
       }
+    },
+    "/api/validation": {
+      "get": {
+        "summary": "Get Validation",
+        "description": "2018 dry-spring backtest against measured SN50540 data.\n\nReturns 503 if the DB holds no 2018 observations (e.g. a fresh clone\nbefore running the pipeline) so the frontend can degrade gracefully.",
+        "operationId": "get_validation_api_validation_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1009,6 +1028,43 @@
         ],
         "title": "InfrastructureFacility"
       },
+      "LongestSpell": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "days",
+          "start",
+          "end"
+        ],
+        "title": "LongestSpell"
+      },
       "Observation": {
         "properties": {
           "date": {
@@ -1220,6 +1276,34 @@
         ],
         "title": "StationSchema"
       },
+      "TankTier": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "liters": {
+            "type": "integer",
+            "title": "Liters"
+          },
+          "days_tank_empty": {
+            "type": "integer",
+            "title": "Days Tank Empty"
+          },
+          "min_tank_liters": {
+            "type": "integer",
+            "title": "Min Tank Liters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "liters",
+          "days_tank_empty",
+          "min_tank_liters"
+        ],
+        "title": "TankTier"
+      },
       "TreatmentResponse": {
         "properties": {
           "material": {
@@ -1271,6 +1355,29 @@
         ],
         "title": "TreatmentResponse"
       },
+      "ValidationCase": {
+        "properties": {
+          "roof_m2": {
+            "type": "integer",
+            "title": "Roof M2"
+          },
+          "population": {
+            "type": "integer",
+            "title": "Population"
+          },
+          "efficiency": {
+            "type": "number",
+            "title": "Efficiency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roof_m2",
+          "population",
+          "efficiency"
+        ],
+        "title": "ValidationCase"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -1310,6 +1417,50 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "ValidationResponse": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "total_rainfall_mm": {
+            "type": "number",
+            "title": "Total Rainfall Mm"
+          },
+          "n_dry_spells": {
+            "type": "integer",
+            "title": "N Dry Spells"
+          },
+          "longest_dry_spell": {
+            "$ref": "#/components/schemas/LongestSpell"
+          },
+          "case": {
+            "$ref": "#/components/schemas/ValidationCase"
+          },
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/TankTier"
+            },
+            "type": "array",
+            "title": "Tiers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "year",
+          "total_rainfall_mm",
+          "n_dry_spells",
+          "longest_dry_spell",
+          "case",
+          "tiers"
+        ],
+        "title": "ValidationResponse"
       },
       "YearlyOutcome": {
         "properties": {

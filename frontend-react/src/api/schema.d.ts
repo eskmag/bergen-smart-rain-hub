@@ -123,6 +123,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/validation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Validation
+         * @description 2018 dry-spring backtest against measured SN50540 data.
+         *
+         *     Returns 503 if the DB holds no 2018 observations (e.g. a fresh clone
+         *     before running the pipeline) so the frontend can degrade gracefully.
+         */
+        get: operations["get_validation_api_validation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -413,6 +436,15 @@ export interface components {
             /** Description */
             description: string;
         };
+        /** LongestSpell */
+        LongestSpell: {
+            /** Days */
+            days: number;
+            /** Start */
+            start: string | null;
+            /** End */
+            end: string | null;
+        };
         /** Observation */
         Observation: {
             /** Date */
@@ -489,6 +521,17 @@ export interface components {
             /** Note */
             note: string;
         };
+        /** TankTier */
+        TankTier: {
+            /** Label */
+            label: string;
+            /** Liters */
+            liters: number;
+            /** Days Tank Empty */
+            days_tank_empty: number;
+            /** Min Tank Liters */
+            min_tank_liters: number;
+        };
         /** TreatmentResponse */
         TreatmentResponse: {
             /** Material */
@@ -508,6 +551,15 @@ export interface components {
             /** Note */
             note: string;
         };
+        /** ValidationCase */
+        ValidationCase: {
+            /** Roof M2 */
+            roof_m2: number;
+            /** Population */
+            population: number;
+            /** Efficiency */
+            efficiency: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -520,6 +572,21 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** ValidationResponse */
+        ValidationResponse: {
+            /** Station Id */
+            station_id: string;
+            /** Year */
+            year: number;
+            /** Total Rainfall Mm */
+            total_rainfall_mm: number;
+            /** N Dry Spells */
+            n_dry_spells: number;
+            longest_dry_spell: components["schemas"]["LongestSpell"];
+            case: components["schemas"]["ValidationCase"];
+            /** Tiers */
+            tiers: components["schemas"]["TankTier"][];
         };
         /** YearlyOutcome */
         YearlyOutcome: {
@@ -753,6 +820,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_validation_api_validation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationResponse"];
                 };
             };
         };
