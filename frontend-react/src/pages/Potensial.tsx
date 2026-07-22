@@ -23,6 +23,7 @@ export default function Potensial() {
     placeholderData: keepPreviousData,
   })
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
+  const { data: validation } = useQuery({ queryKey: ['validation'], queryFn: api.validation })
 
   const efficiencyPct = config ? Math.round(config.defaults.collection_efficiency * 100) : null
   const rainfallMm = config ? Math.round(config.defaults.annual_rainfall_mm) : null
@@ -148,6 +149,18 @@ export default function Potensial() {
             </p>
           </div>
         </div>
+
+        {validation && validation.longest_dry_spell.days > 0 && (
+          <div className="p-validering">
+            <span className="p-validering-tag">Validert mot virkeligheten</span>
+            <p className="p-validering-body">
+              Modellen kjenner igjen tørkeperioden mai–juni 2018
+              ({validation.longest_dry_spell.days} dager,{' '}
+              {validation.longest_dry_spell.start}–{validation.longest_dry_spell.end})
+              fra faktiske MET-målinger ved Bergen Florida.
+            </p>
+          </div>
+        )}
       </section>
 
       {/* ── Results ── */}
