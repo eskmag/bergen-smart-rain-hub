@@ -21,6 +21,7 @@ from backend.analysis import (
 )
 from backend.config import DEFAULT_STATION_ID
 from backend.database import init_db, store_observations
+from tests.test_backtest import requires_2018
 
 client = TestClient(app)
 
@@ -377,6 +378,7 @@ class TestEnergyEndpoint:
 
 
 class TestValidation:
+    @requires_2018
     def test_validation_returns_2018_backtest(self):
         r = client.get("/api/validation")
         assert r.status_code == 200
