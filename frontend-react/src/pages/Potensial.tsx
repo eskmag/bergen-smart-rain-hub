@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import { api } from '../api/client'
 import LandingNav from '../components/LandingNav'
+import Kjelder from '../components/shared/Kjelder'
 import '../landing.css'
 import '../potensial.css'
 
@@ -301,6 +302,9 @@ export default function Potensial() {
           <li><a href="/#data">Datakilde</a></li>
         </ul>
       </footer>
+      <div className="l-footer-kjelder">
+        <Kjelder ids={['who', 'met', 'normal', 'dsb', 'framework']} />
+      </div>
     </div>
   )
 }

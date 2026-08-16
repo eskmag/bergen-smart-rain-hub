@@ -537,3 +537,7 @@ html { scroll-behavior: smooth; }
 }
 
 .l-footer-links a:hover { color: var(--color-text); }
+
+.l-footer-kjelder {
+  padding: 0 2.5rem 1.5rem;
+}

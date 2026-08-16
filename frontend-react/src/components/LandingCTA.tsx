@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import Kjelder from './shared/Kjelder'
 
 export default function LandingCTA() {
   return (
@@ -28,6 +29,9 @@ export default function LandingCTA() {
           <li><a href="#data">Datakilde</a></li>
         </ul>
       </footer>
+      <div className="l-footer-kjelder">
+        <Kjelder />
+      </div>
     </>
   )
 }

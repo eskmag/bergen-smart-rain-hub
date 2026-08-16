@@ -6,6 +6,7 @@ import DrySpellsList from '../shared/DrySpellsList'
 import { WaterQualityCard } from '../shared/WaterQualityCard'
 import { EnergyCard } from '../shared/EnergyCard'
 import { YearlyOutcomes } from '../shared/YearlyOutcomes'
+import Kjelder from '../shared/Kjelder'
 import { BUILDING_OPTIONS } from './buildingTypes'
 
 function fmt(n: number, decimals = 0) {
@@ -22,7 +23,7 @@ export default function ResultPanel() {
   const {
     buildingKey, roofSource,
     simResult, isSimPending,
-    population, scale, annualLiters, usageLevel, roofMaterial, station,
+    population, scale, annualLiters, usageLevel, roofMaterial, station, scenario,
     roofPerBuilding, numBuildings, heightM,
   } = useBeredskap()
 
@@ -172,10 +173,15 @@ export default function ResultPanel() {
         />
       )}
 
-      {/* Data note */}
+      {/* Kjelder */}
       <div className="k-data-note">
-        <div className="k-note-dot" />
-        Data fra Frost API · Bergen Florida SN50540 · WHO-standard {waterNeeds['survival_total']} L/person/dag
+        <Kjelder
+          ids={
+            scenario === 'historical'
+              ? ['who', 'met', 'framework']
+              : ['who', 'met', 'framework', 'klima']
+          }
+        />
       </div>
     </div>
   )
