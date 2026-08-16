@@ -1,7 +1,7 @@
-# Bergen Smart Rain Hub
+# Bergen Beredskap
 ### Regnvannsoppsamling som beredskapsressurs
 
-Bergen er en av Europas mest nedbørsrike byer, med over 2 200 mm nedbør i året. Bergen Smart Rain Hub analyserer ekte nedbørsdata for å kartlegge potensialet for regnvannsoppsamling som **beredskapsressurs** — for enkeltpersoner, lokalsamfunn og kommunale beredskapsplaner.
+Bergen er en av Europas mest nedbørsrike byer, med over 2 200 mm nedbør i året. Bergen Beredskap analyserer ekte nedbørsdata for å kartlegge potensialet for regnvannsoppsamling som **beredskapsressurs** — for enkeltpersoner, lokalsamfunn og kommunale beredskapsplaner.
 
 Ved vannkrise, forurensning eller infrastruktursvikt kan oppsamlet regnvann utgjøre forskjellen mellom trygg vannforsyning og krise. Dette verktøyet viser hvor mye vann som kan samles opp fra bygningstak, og hvor lenge det rekker.
 
@@ -91,7 +91,7 @@ pip install -e ".[dev]"
 python -m backend.pipeline
 
 # 3. Start API-serveren
-uvicorn api.main:app --reload          # http://localhost:8000
+uvicorn api.main:app --reload
 
 # 4. Start React-frontenden (i et eget terminalvindu)
 cd frontend-react && npm install && npm run dev

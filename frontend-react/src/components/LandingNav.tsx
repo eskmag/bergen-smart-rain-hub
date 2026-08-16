@@ -9,7 +9,7 @@ export default function LandingNav() {
             <path d="M12 2C8 8 5 12 5 16a7 7 0 0014 0c0-4-3-8-7-14z" fill="white" />
           </svg>
         </div>
-        <span className="l-nav-logotype">Bergen Smart Rain Hub</span>
+        <span className="l-nav-logotype">Bergen Beredskap</span>
       </Link>
       <ul className="l-nav-links">
         {/* /#anker works from every route (plain href forces the navigation) */}
