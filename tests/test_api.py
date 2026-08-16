@@ -5,6 +5,7 @@ that the thin API layer wires it up correctly.
 """
 
 from datetime import date, timedelta
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -383,3 +384,43 @@ class TestValidation:
         assert body["year"] == 2018
         assert body["longest_dry_spell"]["days"] >= 20
         assert len(body["tiers"]) == 3
+
+
+class TestAdminRefresh:
+    def test_refresh_without_token_401(self, monkeypatch):
+        monkeypatch.setenv("REFRESH_TOKEN", "secret-token")
+        r = client.post("/api/admin/refresh")
+        assert r.status_code == 401
+
+    def test_refresh_with_wrong_token_401(self, monkeypatch):
+        monkeypatch.setenv("REFRESH_TOKEN", "secret-token")
+        r = client.post("/api/admin/refresh", headers={"X-Refresh-Token": "wrong"})
+        assert r.status_code == 401
+
+    def test_refresh_unconfigured_token_401(self, monkeypatch):
+        monkeypatch.delenv("REFRESH_TOKEN", raising=False)
+        r = client.post("/api/admin/refresh", headers={"X-Refresh-Token": "anything"})
+        assert r.status_code == 401
+
+    def test_refresh_with_correct_token_runs_pipeline(self, monkeypatch):
+        monkeypatch.setenv("REFRESH_TOKEN", "secret-token")
+        monkeypatch.setattr("backend.pipeline.run", lambda days: 42)
+        r = client.post("/api/admin/refresh", headers={"X-Refresh-Token": "secret-token"})
+        assert r.status_code == 200
+        assert r.json()["rows_stored"] == 42
+
+
+class TestSpaFallback:
+    def test_unmatched_api_path_stays_json_404(self):
+        r = client.get("/api/does-not-exist")
+        assert r.status_code == 404
+        assert r.headers["content-type"].startswith("application/json")
+
+    @pytest.mark.skipif(
+        not (Path(__file__).resolve().parent.parent / "frontend-react" / "dist" / "index.html").exists(),
+        reason="frontend not built (run `npm run build` in frontend-react/)",
+    )
+    def test_client_route_serves_index_html(self):
+        r = client.get("/beregn")
+        assert r.status_code == 200
+        assert "text/html" in r.headers["content-type"]
