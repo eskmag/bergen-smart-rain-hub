@@ -1,0 +1,18 @@
+# Fly.io app config. Created by `fly launch --no-deploy` and edited to
+# match this project's single-container setup — see docs/deployment.md.
+app = "bergen-smart-rain-hub"
+primary_region = "arn"  # Stockholm — closest Fly region to Bergen
+
+[build]
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

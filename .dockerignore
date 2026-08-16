@@ -1,0 +1,19 @@
+# Belt-and-suspenders on top of the Dockerfile's explicit COPY list —
+# these should never be picked up even if the Dockerfile ever changes.
+.env
+.envrc
+.git
+.github
+.venv
+venv/
+__pycache__
+*.pyc
+node_modules
+frontend-react/node_modules
+frontend-react/dist
+tests/
+docs/
+*.md
+.dockerignore
+Dockerfile
+fly.toml
