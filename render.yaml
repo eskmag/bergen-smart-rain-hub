@@ -1,0 +1,22 @@
+# Render Blueprint — lets Render auto-detect this file and pre-fill a new
+# web service from the repo's Dockerfile. See docs/deployment.md.
+# Secrets (sync: false) are never stored here — set them in the Render
+# dashboard after the service is created.
+services:
+  - type: web
+    name: bergen-smart-rain-hub
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/config
+    envVars:
+      - key: CLIENT_ID
+        sync: false
+      - key: CLIENT_SECRET
+        sync: false
+      - key: FROST_API_ENDPOINT
+        sync: false
+      - key: REFRESH_TOKEN
+        sync: false
+      - key: ALLOWED_ORIGIN
+        sync: false
