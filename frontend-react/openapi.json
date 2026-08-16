@@ -39,6 +39,16 @@
               "default": 365,
               "title": "Days"
             }
+          },
+          {
+            "name": "station",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "SN50540",
+              "title": "Station"
+            }
           }
         ],
         "responses": {
@@ -167,6 +177,173 @@
           }
         }
       }
+    },
+    "/api/treatment": {
+      "get": {
+        "summary": "Get Treatment",
+        "operationId": "get_treatment_api_treatment_get",
+        "parameters": [
+          {
+            "name": "material",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Material"
+            }
+          },
+          {
+            "name": "scale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "household",
+              "title": "Scale"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bydel": {
+      "get": {
+        "summary": "Get Bydel",
+        "operationId": "get_bydel_api_bydel_get",
+        "parameters": [
+          {
+            "name": "participation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.2,
+              "title": "Participation"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BydelResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/energy": {
+      "get": {
+        "summary": "Get Energy",
+        "operationId": "get_energy_api_energy_get",
+        "parameters": [
+          {
+            "name": "roof_area_m2",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "title": "Roof Area M2"
+            }
+          },
+          {
+            "name": "height_m",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 5.0,
+              "title": "Height M"
+            }
+          },
+          {
+            "name": "annual_rainfall_mm",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 2250,
+              "title": "Annual Rainfall Mm"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnergyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/validation": {
+      "get": {
+        "summary": "Get Validation",
+        "description": "2018 dry-spring backtest against measured SN50540 data.\n\nReturns 503 if the DB holds no 2018 observations (e.g. a fresh clone\nbefore running the pipeline) so the frontend can degrade gracefully.",
+        "operationId": "get_validation_api_validation_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -202,6 +379,11 @@
             "type": "string",
             "title": "Climate Scenario",
             "default": "historical"
+          },
+          "station": {
+            "type": "string",
+            "title": "Station",
+            "default": "SN50540"
           }
         },
         "type": "object",
@@ -246,6 +428,14 @@
               }
             ],
             "title": "Scenario Comparison"
+          },
+          "yearly_outcomes": {
+            "items": {
+              "$ref": "#/components/schemas/YearlyOutcome"
+            },
+            "type": "array",
+            "title": "Yearly Outcomes",
+            "default": []
           }
         },
         "type": "object",
@@ -317,6 +507,103 @@
         ],
         "title": "BuildingPreset"
       },
+      "BydelResponse": {
+        "properties": {
+          "bydeler": {
+            "items": {
+              "$ref": "#/components/schemas/BydelRow"
+            },
+            "type": "array",
+            "title": "Bydeler"
+          },
+          "participation_pct": {
+            "type": "number",
+            "title": "Participation Pct"
+          },
+          "total_daily_liters": {
+            "type": "integer",
+            "title": "Total Daily Liters"
+          },
+          "total_demand_liters": {
+            "type": "integer",
+            "title": "Total Demand Liters"
+          },
+          "demand_coverage_pct": {
+            "type": "number",
+            "title": "Demand Coverage Pct"
+          },
+          "persons_covered": {
+            "type": "integer",
+            "title": "Persons Covered"
+          },
+          "roof_m2_per_capita": {
+            "type": "number",
+            "title": "Roof M2 Per Capita"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bydeler",
+          "participation_pct",
+          "total_daily_liters",
+          "total_demand_liters",
+          "demand_coverage_pct",
+          "persons_covered",
+          "roof_m2_per_capita",
+          "assumptions"
+        ],
+        "title": "BydelResponse"
+      },
+      "BydelRow": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "population": {
+            "type": "integer",
+            "title": "Population"
+          },
+          "suitable_roof_m2": {
+            "type": "integer",
+            "title": "Suitable Roof M2"
+          },
+          "daily_yield_liters": {
+            "type": "integer",
+            "title": "Daily Yield Liters"
+          },
+          "demand_liters": {
+            "type": "integer",
+            "title": "Demand Liters"
+          },
+          "coverage_pct": {
+            "type": "number",
+            "title": "Coverage Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "population",
+          "suitable_roof_m2",
+          "daily_yield_liters",
+          "demand_liters",
+          "coverage_pct"
+        ],
+        "title": "BydelRow"
+      },
       "ClimateScenario": {
         "properties": {
           "key": {
@@ -378,6 +665,11 @@
               30,
               60
             ]
+          },
+          "station_id": {
+            "type": "string",
+            "title": "Station Id",
+            "default": "SN50540"
           }
         },
         "type": "object",
@@ -433,6 +725,20 @@
           },
           "defaults": {
             "$ref": "#/components/schemas/ConfigDefaults"
+          },
+          "roof_materials": {
+            "items": {
+              "$ref": "#/components/schemas/RoofMaterial"
+            },
+            "type": "array",
+            "title": "Roof Materials"
+          },
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/StationSchema"
+            },
+            "type": "array",
+            "title": "Stations"
           }
         },
         "type": "object",
@@ -443,7 +749,9 @@
           "infrastructure_facilities",
           "climate_scenarios",
           "water_needs",
-          "defaults"
+          "defaults",
+          "roof_materials",
+          "stations"
         ],
         "title": "ConfigResponse"
       },
@@ -635,6 +943,40 @@
         ],
         "title": "DrySpell"
       },
+      "EnergyResponse": {
+        "properties": {
+          "annual_liters": {
+            "type": "number",
+            "title": "Annual Liters"
+          },
+          "annual_energy_kwh": {
+            "type": "number",
+            "title": "Annual Energy Kwh"
+          },
+          "co2_offset_g": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Co2 Offset G"
+          },
+          "equivalents": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Equivalents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "annual_liters",
+          "annual_energy_kwh",
+          "co2_offset_g",
+          "equivalents"
+        ],
+        "title": "EnergyResponse"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -686,6 +1028,43 @@
         ],
         "title": "InfrastructureFacility"
       },
+      "LongestSpell": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "days",
+          "start",
+          "end"
+        ],
+        "title": "LongestSpell"
+      },
       "Observation": {
         "properties": {
           "date": {
@@ -714,6 +1093,34 @@
           "precipitation_mm"
         ],
         "title": "Observation"
+      },
+      "RoofMaterial": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "risk_class": {
+            "type": "string",
+            "title": "Risk Class"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "risk_class",
+          "description"
+        ],
+        "title": "RoofMaterial"
       },
       "ScaleSchema": {
         "properties": {
@@ -846,6 +1253,131 @@
         ],
         "title": "SimulationRow"
       },
+      "StationSchema": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "note"
+        ],
+        "title": "StationSchema"
+      },
+      "TankTier": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "liters": {
+            "type": "integer",
+            "title": "Liters"
+          },
+          "days_tank_empty": {
+            "type": "integer",
+            "title": "Days Tank Empty"
+          },
+          "min_tank_liters": {
+            "type": "integer",
+            "title": "Min Tank Liters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "liters",
+          "days_tank_empty",
+          "min_tank_liters"
+        ],
+        "title": "TankTier"
+      },
+      "TreatmentResponse": {
+        "properties": {
+          "material": {
+            "type": "string",
+            "title": "Material"
+          },
+          "material_label": {
+            "type": "string",
+            "title": "Material Label"
+          },
+          "risk_class": {
+            "type": "string",
+            "title": "Risk Class"
+          },
+          "potable": {
+            "type": "boolean",
+            "title": "Potable"
+          },
+          "barriers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Barriers"
+          },
+          "cost_low_nok": {
+            "type": "integer",
+            "title": "Cost Low Nok"
+          },
+          "cost_high_nok": {
+            "type": "integer",
+            "title": "Cost High Nok"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "material",
+          "material_label",
+          "risk_class",
+          "potable",
+          "barriers",
+          "cost_low_nok",
+          "cost_high_nok",
+          "note"
+        ],
+        "title": "TreatmentResponse"
+      },
+      "ValidationCase": {
+        "properties": {
+          "roof_m2": {
+            "type": "integer",
+            "title": "Roof M2"
+          },
+          "population": {
+            "type": "integer",
+            "title": "Population"
+          },
+          "efficiency": {
+            "type": "number",
+            "title": "Efficiency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roof_m2",
+          "population",
+          "efficiency"
+        ],
+        "title": "ValidationCase"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -885,6 +1417,83 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "ValidationResponse": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "total_rainfall_mm": {
+            "type": "number",
+            "title": "Total Rainfall Mm"
+          },
+          "n_dry_spells": {
+            "type": "integer",
+            "title": "N Dry Spells"
+          },
+          "longest_dry_spell": {
+            "$ref": "#/components/schemas/LongestSpell"
+          },
+          "case": {
+            "$ref": "#/components/schemas/ValidationCase"
+          },
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/TankTier"
+            },
+            "type": "array",
+            "title": "Tiers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "year",
+          "total_rainfall_mm",
+          "n_dry_spells",
+          "longest_dry_spell",
+          "case",
+          "tiers"
+        ],
+        "title": "ValidationResponse"
+      },
+      "YearlyOutcome": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "total_collected_liters": {
+            "type": "number",
+            "title": "Total Collected Liters"
+          },
+          "days_tank_empty": {
+            "type": "integer",
+            "title": "Days Tank Empty"
+          },
+          "min_tank_pct": {
+            "type": "number",
+            "title": "Min Tank Pct"
+          },
+          "longest_dry_spell_days": {
+            "type": "integer",
+            "title": "Longest Dry Spell Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "total_collected_liters",
+          "days_tank_empty",
+          "min_tank_pct",
+          "longest_dry_spell_days"
+        ],
+        "title": "YearlyOutcome"
       }
     }
   }

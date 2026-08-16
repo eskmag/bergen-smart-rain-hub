@@ -7,8 +7,8 @@ import type { SimulationRow } from '../../api/client'
 interface SimulationChartProps {
   series: SimulationRow[] | undefined
   loading: boolean
-  // 'k' (kalkulator) or 't' (takkart) — selects the page's CSS namespace
-  classPrefix: 'k' | 't'
+  // 'k' (kalkulator), 't' (takkart), or 'r' (rapport) — selects the page's CSS namespace
+  classPrefix: 'k' | 't' | 'r'
   stroke?: string
 }
 

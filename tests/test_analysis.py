@@ -185,3 +185,31 @@ class TestDailyCollection:
         buildings = [Building("A", 100), Building("B", 200)]
         result = daily_collection(df, buildings)
         assert len(result) == 2  # 1 day * 2 buildings
+
+
+def test_yearly_outcomes_ranks_years():
+    import pandas as pd
+    from backend.analysis import Building, yearly_outcomes
+    # Two synthetic years: 2023 wet (5mm/day), 2024 dry (0mm/day)
+    dates = pd.date_range("2023-01-01", "2024-12-31", freq="D")
+    df = pd.DataFrame({
+        "date": dates.strftime("%Y-%m-%d"),
+        "precipitation_mm": [5.0 if d.year == 2023 else 0.0 for d in dates],
+    })
+    out = yearly_outcomes(df, [Building("Hus", 120)], tank_capacity_liters=5000,
+                          population=4)
+    years = {o["year"]: o for o in out}
+    assert years[2024]["days_tank_empty"] > years[2023]["days_tank_empty"]
+    assert years[2023]["total_collected_liters"] > 0
+    assert all(set(o) >= {"year", "total_collected_liters", "days_tank_empty",
+                          "min_tank_pct", "longest_dry_spell_days"} for o in out)
+
+
+def test_yearly_outcomes_skips_partial_years():
+    import pandas as pd
+    from backend.analysis import Building, yearly_outcomes
+    # Only 40 days of 2024 — too partial to rank as a "year"
+    dates = pd.date_range("2024-01-01", periods=40, freq="D")
+    df = pd.DataFrame({"date": dates.strftime("%Y-%m-%d"),
+                       "precipitation_mm": 2.0})
+    assert yearly_outcomes(df, [Building("Hus", 120)], 5000, 4) == []

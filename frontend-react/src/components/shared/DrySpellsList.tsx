@@ -10,8 +10,8 @@ interface DrySpellLabels {
 interface DrySpellsListProps {
   spells: DrySpell[] | undefined
   loading?: boolean
-  // 'k' (kalkulator) or 't' (takkart) — selects the page's CSS namespace
-  classPrefix: 'k' | 't'
+  // 'k' (kalkulator), 't' (takkart), or 'r' (rapport) — selects the page's CSS namespace
+  classPrefix: 'k' | 't' | 'r'
   // bokmål on /beregn, nynorsk on /takkart
   labels: DrySpellLabels
   hideWhenEmpty?: boolean

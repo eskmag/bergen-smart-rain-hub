@@ -68,6 +68,7 @@ export function TakkartProvider({ children }: TakkartProviderProps) {
         efficiency: defaults.collection_efficiency,
         usage_level: 'survival_total',
         climate_scenario: 'historical',
+        station: defaults.station_id,
       })
     }, 500)
 

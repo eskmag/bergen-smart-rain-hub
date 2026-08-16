@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet'
 import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import '@geoman-io/leaflet-geoman-free'
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
 import type { Feature, Polygon } from 'geojson'
-import { useTakkart } from '../../context/TakkartContext'
 
 // Fix Vite + Leaflet default marker icon path resolution
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
@@ -13,22 +14,44 @@ L.Icon.Default.mergeOptions({
   shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
 })
 
-function FlyToController() {
+interface TakkartMapProps {
+  polygon: Feature<Polygon> | null
+  onPolygon: (feature: Feature<Polygon> | null) => void
+  flyToPoint: [number, number] | null
+  onFlyTo: (point: [number, number] | null) => void
+  drawEnabled: boolean
+}
+
+function FlyToController({ flyToPoint, onFlyTo }: {
+  flyToPoint: [number, number] | null
+  onFlyTo: (point: [number, number] | null) => void
+}) {
   const map = useMap()
-  const { flyToPoint, setFlyToPoint } = useTakkart()
 
   useEffect(() => {
     if (!flyToPoint) return
     map.flyTo(flyToPoint, 18, { duration: 1.2 })
-    setFlyToPoint(null)
-  }, [flyToPoint, map, setFlyToPoint])
+    onFlyTo(null)
+  }, [flyToPoint, map, onFlyTo])
 
   return null
 }
 
-function GeomanControl() {
+// Ensure the map lays out correctly when it becomes visible (e.g. inside a
+// modal that was display:none until opened).
+function InvalidateOnMount() {
   const map = useMap()
-  const { setPolygon } = useTakkart()
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 0)
+    return () => clearTimeout(t)
+  }, [map])
+  return null
+}
+
+function GeomanControl({ onPolygon }: {
+  onPolygon: (feature: Feature<Polygon> | null) => void
+}) {
+  const map = useMap()
 
   useEffect(() => {
     map.pm.addControls({
@@ -49,7 +72,7 @@ function GeomanControl() {
     function onCreate(e: { layer: L.Layer }) {
       const layer = e.layer as L.Polygon
       const geojson = layer.toGeoJSON() as Feature<Polygon>
-      setPolygon(geojson)
+      onPolygon(geojson)
       // Remove drawn layer from map — we render it via <GeoJSON> instead
       map.removeLayer(layer)
       map.pm.disableDraw()
@@ -60,7 +83,7 @@ function GeomanControl() {
       map.off('pm:create', onCreate)
       map.pm.removeControls()
     }
-  }, [map, setPolygon])
+  }, [map, onPolygon])
 
   return null
 }
@@ -76,9 +99,9 @@ const POLYGON_STYLE = {
   fillOpacity: 0.45,
 }
 
-export default function TakkartMap() {
-  const { polygon, mode } = useTakkart()
-
+export default function TakkartMap({
+  polygon, onPolygon, flyToPoint, onFlyTo, drawEnabled,
+}: TakkartMapProps) {
   return (
     <MapContainer
       center={[60.3913, 5.3221]}
@@ -105,8 +128,9 @@ export default function TakkartMap() {
           style={POLYGON_STYLE}
         />
       )}
-      <FlyToController />
-      {mode === 'manual' && <GeomanControl />}
+      <InvalidateOnMount />
+      <FlyToController flyToPoint={flyToPoint} onFlyTo={onFlyTo} />
+      {drawEnabled && <GeomanControl onPolygon={onPolygon} />}
     </MapContainer>
   )
 }

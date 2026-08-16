@@ -1,8 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../../api/client'
 import { useBeredskap } from '../../context/BeredskapsContext'
 import SimulationChart from '../shared/SimulationChart'
 import DrySpellsList from '../shared/DrySpellsList'
+import { WaterQualityCard } from '../shared/WaterQualityCard'
+import { EnergyCard } from '../shared/EnergyCard'
+import { YearlyOutcomes } from '../shared/YearlyOutcomes'
+import Kjelder from '../shared/Kjelder'
 import { BUILDING_OPTIONS } from './buildingTypes'
 
 function fmt(n: number, decimals = 0) {
@@ -16,10 +21,12 @@ function verdictFor(daysTankEmpty: number) {
 }
 
 export default function ResultPanel() {
+  const navigate = useNavigate()
   const {
-    buildingKey,
+    buildingKey, roofSource,
     simResult, isSimPending,
-    population, scale, annualLiters, usageLevel,
+    population, scale, annualLiters, usageLevel, roofMaterial, station, scenario,
+    roofPerBuilding, numBuildings, heightM,
   } = useBeredskap()
 
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
@@ -31,8 +38,13 @@ export default function ResultPanel() {
   })
   const costs = costsQuery.data
 
-  const buildingLabel =
-    BUILDING_OPTIONS.find(o => o.key === buildingKey)?.label.toLowerCase() ?? 'bygg'
+  const totalRoofM2 = roofPerBuilding * numBuildings
+  const roofDescriptor =
+    roofSource === 'preset'
+      ? BUILDING_OPTIONS.find(o => o.key === buildingKey)?.label.toLowerCase() ?? 'bygg'
+      : `${fmt(totalRoofM2)} m² tak (målt)`
+
+  const stationLabel = config?.stations.find(s => s.id === station)?.label
 
   if (!config) {
     return <div className="k-result-panel" />
@@ -57,7 +69,7 @@ export default function ResultPanel() {
       {/* Hero */}
       <div className="k-result-hero">
         <div className="k-rh-verdict">
-          Beredskapsforsyning · {fmt(population)} {population === 1 ? 'person' : 'personer'} · {buildingLabel}
+          Beredskapsforsyning · {fmt(population)} {population === 1 ? 'person' : 'personer'} · {roofDescriptor}
         </div>
         <div className="k-rh-number">{loading ? '—' : fmt(supplyDays)}</div>
         <div className="k-rh-unit">dager med trygg vannforsyning</div>
@@ -71,6 +83,10 @@ export default function ResultPanel() {
 
       {/* Metrics */}
       <div className="k-metrics-row">
+        <div className="k-metric-card">
+          <div className="k-mc-label">Takflate</div>
+          <div className="k-mc-val">{fmt(totalRoofM2)} <span className="k-mc-unit">m²</span></div>
+        </div>
         <div className="k-metric-card">
           <div className="k-mc-label">Årlig oppsamling</div>
           <div className="k-mc-val">{loading ? '—' : fmt(totalLiters)} <span className="k-mc-unit">L</span></div>
@@ -138,10 +154,46 @@ export default function ResultPanel() {
         }}
       />
 
-      {/* Data note */}
+      {/* Water quality */}
+      <WaterQualityCard material={roofMaterial} scale={scale} classPrefix="k" />
+
+      {/* Energy — a talking point at scale; hidden for household (Phase 5 precedent) */}
+      {scale !== 'household' && (
+        <EnergyCard
+          totalRoofM2={roofPerBuilding * numBuildings}
+          heightM={heightM}
+          classPrefix="k"
+        />
+      )}
+
+      {/* Historical year outcomes */}
+      {simResult?.yearly_outcomes && (
+        <YearlyOutcomes
+          outcomes={simResult.yearly_outcomes}
+          classPrefix="k"
+          stationLabel={stationLabel}
+        />
+      )}
+
+      {/* Report */}
+      <button
+        className="k-roof-map-btn"
+        style={{ alignSelf: 'flex-start' }}
+        onClick={() => navigate('/rapport')}
+        disabled={!simResult}
+      >
+        Generer rapport
+      </button>
+
+      {/* Kjelder */}
       <div className="k-data-note">
-        <div className="k-note-dot" />
-        Data fra Frost API · Bergen Florida SN50540 · WHO-standard {waterNeeds['survival_total']} L/person/dag
+        <Kjelder
+          ids={
+            scenario === 'historical'
+              ? ['who', 'met', 'framework', 'costs']
+              : ['who', 'met', 'framework', 'klima', 'costs']
+          }
+        />
       </div>
     </div>
   )

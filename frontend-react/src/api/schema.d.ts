@@ -72,6 +72,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/treatment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Treatment */
+        get: operations["get_treatment_api_treatment_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bydel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Bydel */
+        get: operations["get_bydel_api_bydel_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/energy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Energy */
+        get: operations["get_energy_api_energy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/validation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Validation
+         * @description 2018 dry-spring backtest against measured SN50540 data.
+         *
+         *     Returns 503 if the DB holds no 2018 observations (e.g. a fresh clone
+         *     before running the pipeline) so the frontend can degrade gracefully.
+         */
+        get: operations["get_validation_api_validation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -99,6 +173,11 @@ export interface components {
              * @default historical
              */
             climate_scenario: string;
+            /**
+             * Station
+             * @default SN50540
+             */
+            station: string;
         };
         /** BeredskapsResponse */
         BeredskapsResponse: {
@@ -112,6 +191,11 @@ export interface components {
             dry_spells: components["schemas"]["DrySpell"][];
             /** Scenario Comparison */
             scenario_comparison?: components["schemas"]["ScenarioComparison"][] | null;
+            /**
+             * Yearly Outcomes
+             * @default []
+             */
+            yearly_outcomes: components["schemas"]["YearlyOutcome"][];
         };
         /** BuildingInput */
         BuildingInput: {
@@ -139,6 +223,42 @@ export interface components {
             height_m: number;
             /** Description */
             description: string;
+        };
+        /** BydelResponse */
+        BydelResponse: {
+            /** Bydeler */
+            bydeler: components["schemas"]["BydelRow"][];
+            /** Participation Pct */
+            participation_pct: number;
+            /** Total Daily Liters */
+            total_daily_liters: number;
+            /** Total Demand Liters */
+            total_demand_liters: number;
+            /** Demand Coverage Pct */
+            demand_coverage_pct: number;
+            /** Persons Covered */
+            persons_covered: number;
+            /** Roof M2 Per Capita */
+            roof_m2_per_capita: number;
+            /** Assumptions */
+            assumptions: string[];
+        };
+        /** BydelRow */
+        BydelRow: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Population */
+            population: number;
+            /** Suitable Roof M2 */
+            suitable_roof_m2: number;
+            /** Daily Yield Liters */
+            daily_yield_liters: number;
+            /** Demand Liters */
+            demand_liters: number;
+            /** Coverage Pct */
+            coverage_pct: number;
         };
         /** ClimateScenario */
         ClimateScenario: {
@@ -183,6 +303,11 @@ export interface components {
              *     ]
              */
             tank_recommendation_days: number[];
+            /**
+             * Station Id
+             * @default SN50540
+             */
+            station_id: string;
         };
         /** ConfigResponse */
         ConfigResponse: {
@@ -203,6 +328,10 @@ export interface components {
                 [key: string]: number;
             };
             defaults: components["schemas"]["ConfigDefaults"];
+            /** Roof Materials */
+            roof_materials: components["schemas"]["RoofMaterial"][];
+            /** Stations */
+            stations: components["schemas"]["StationSchema"][];
         };
         /** CostBreakdownItem */
         CostBreakdownItem: {
@@ -272,6 +401,21 @@ export interface components {
             /** Total Rain Mm */
             total_rain_mm: number;
         };
+        /** EnergyResponse */
+        EnergyResponse: {
+            /** Annual Liters */
+            annual_liters: number;
+            /** Annual Energy Kwh */
+            annual_energy_kwh: number;
+            /** Co2 Offset G */
+            co2_offset_g: {
+                [key: string]: number;
+            };
+            /** Equivalents */
+            equivalents: {
+                [key: string]: number;
+            };
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -292,6 +436,15 @@ export interface components {
             /** Description */
             description: string;
         };
+        /** LongestSpell */
+        LongestSpell: {
+            /** Days */
+            days: number;
+            /** Start */
+            start: string | null;
+            /** End */
+            end: string | null;
+        };
         /** Observation */
         Observation: {
             /** Date */
@@ -300,6 +453,17 @@ export interface components {
             precipitation_mm: number;
             /** Air Temperature C */
             air_temperature_c?: number | null;
+        };
+        /** RoofMaterial */
+        RoofMaterial: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Risk Class */
+            risk_class: string;
+            /** Description */
+            description: string;
         };
         /** ScaleSchema */
         ScaleSchema: {
@@ -348,6 +512,54 @@ export interface components {
             /** Days Remaining */
             days_remaining: number;
         };
+        /** StationSchema */
+        StationSchema: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Note */
+            note: string;
+        };
+        /** TankTier */
+        TankTier: {
+            /** Label */
+            label: string;
+            /** Liters */
+            liters: number;
+            /** Days Tank Empty */
+            days_tank_empty: number;
+            /** Min Tank Liters */
+            min_tank_liters: number;
+        };
+        /** TreatmentResponse */
+        TreatmentResponse: {
+            /** Material */
+            material: string;
+            /** Material Label */
+            material_label: string;
+            /** Risk Class */
+            risk_class: string;
+            /** Potable */
+            potable: boolean;
+            /** Barriers */
+            barriers: string[];
+            /** Cost Low Nok */
+            cost_low_nok: number;
+            /** Cost High Nok */
+            cost_high_nok: number;
+            /** Note */
+            note: string;
+        };
+        /** ValidationCase */
+        ValidationCase: {
+            /** Roof M2 */
+            roof_m2: number;
+            /** Population */
+            population: number;
+            /** Efficiency */
+            efficiency: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -360,6 +572,34 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** ValidationResponse */
+        ValidationResponse: {
+            /** Station Id */
+            station_id: string;
+            /** Year */
+            year: number;
+            /** Total Rainfall Mm */
+            total_rainfall_mm: number;
+            /** N Dry Spells */
+            n_dry_spells: number;
+            longest_dry_spell: components["schemas"]["LongestSpell"];
+            case: components["schemas"]["ValidationCase"];
+            /** Tiers */
+            tiers: components["schemas"]["TankTier"][];
+        };
+        /** YearlyOutcome */
+        YearlyOutcome: {
+            /** Year */
+            year: number;
+            /** Total Collected Liters */
+            total_collected_liters: number;
+            /** Days Tank Empty */
+            days_tank_empty: number;
+            /** Min Tank Pct */
+            min_tank_pct: number;
+            /** Longest Dry Spell Days */
+            longest_dry_spell_days: number;
         };
     };
     responses: never;
@@ -394,6 +634,7 @@ export interface operations {
         parameters: {
             query?: {
                 days?: number;
+                station?: string;
             };
             header?: never;
             path?: never;
@@ -483,6 +724,122 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_treatment_api_treatment_get: {
+        parameters: {
+            query: {
+                material: string;
+                scale?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreatmentResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bydel_api_bydel_get: {
+        parameters: {
+            query?: {
+                participation?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BydelResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_energy_api_energy_get: {
+        parameters: {
+            query: {
+                roof_area_m2: number;
+                height_m?: number;
+                annual_rainfall_mm?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnergyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_validation_api_validation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationResponse"];
                 };
             };
         };

@@ -5,6 +5,7 @@ that the thin API layer wires it up correctly.
 """
 
 from datetime import date, timedelta
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -20,6 +21,7 @@ from backend.analysis import (
 )
 from backend.config import DEFAULT_STATION_ID
 from backend.database import init_db, store_observations
+from tests.test_backtest import requires_2018
 
 client = TestClient(app)
 
@@ -41,6 +43,17 @@ def seeded_db(tmp_path, monkeypatch):
         for i in range(60)
     ]
     store_observations(conn, pd.DataFrame(rows))
+    # Also seed SN50500 so station-selection tests can use it
+    rows_50500 = [
+        {
+            "station_id": "SN50500",
+            "date": (start + timedelta(days=i)).isoformat(),
+            "precipitation_mm": 0.0 if i % 3 == 0 else 5.0,
+            "air_temperature_c": 7.0,
+        }
+        for i in range(60)
+    ]
+    store_observations(conn, pd.DataFrame(rows_50500))
     conn.close()
     monkeypatch.setattr("api.routers.observations.DB_PATH", db_path)
     monkeypatch.setattr("api.routers.simulate.DB_PATH", db_path)
@@ -104,6 +117,48 @@ class TestObservationsEndpoint:
         assert r.json() == []
 
 
+@pytest.fixture
+def two_year_db(tmp_path, monkeypatch):
+    """Temp database with 2 full synthetic years for SN50540.
+
+    Uses the two most-recently-completed calendar years so that
+    _load_df(days=3650) captures them while _load_df(days=365) also returns
+    data (we seed the most recent ~365 days from year-2 as well).
+    """
+    db_path = tmp_path / "rain2yr.db"
+    conn = init_db(db_path)
+    today = date.today()
+    # Two complete calendar years ending yesterday
+    year2 = today.year - 1
+    year1 = year2 - 1
+    rows = []
+    for year in (year1, year2):
+        start_of_year = date(year, 1, 1)
+        for i in range(365):
+            d = start_of_year + timedelta(days=i)
+            rows.append({
+                "station_id": DEFAULT_STATION_ID,
+                "date": d.isoformat(),
+                # year1: wetter (8 mm on rain days); year2: drier (4 mm)
+                "precipitation_mm": 0.0 if i % 3 == 0 else (8.0 if year == year1 else 4.0),
+                "air_temperature_c": 8.0,
+            })
+    # Also seed the last 60 days of "today's" year so _load_df(days=365) is non-empty
+    recent_start = today - timedelta(days=59)
+    for i in range(60):
+        d = recent_start + timedelta(days=i)
+        rows.append({
+            "station_id": DEFAULT_STATION_ID,
+            "date": d.isoformat(),
+            "precipitation_mm": 0.0 if i % 3 == 0 else 6.0,
+            "air_temperature_c": 8.0,
+        })
+    store_observations(conn, pd.DataFrame(rows))
+    conn.close()
+    monkeypatch.setattr("api.routers.simulate.DB_PATH", db_path)
+    return db_path, year1, year2
+
+
 class TestSimulateEndpoint:
     def test_happy_path(self, seeded_db):
         r = client.post("/api/simulate/beredskap", json=VALID_SIM_REQUEST)
@@ -114,6 +169,38 @@ class TestSimulateEndpoint:
         assert body["dry_spells"] == [] or body["dry_spells"][0]["days"] >= 1
         # historical scenario → no comparison block
         assert body["scenario_comparison"] is None
+
+    def test_yearly_outcomes_present_in_response(self, seeded_db):
+        """yearly_outcomes key must exist and be a list (seeded fixture is only
+        60 days → all years have <300 days → list is empty, but field is present)."""
+        r = client.post("/api/simulate/beredskap", json=VALID_SIM_REQUEST)
+        assert r.status_code == 200
+        body = r.json()
+        assert "yearly_outcomes" in body
+        assert isinstance(body["yearly_outcomes"], list)
+
+    def test_yearly_outcomes_two_full_years(self, two_year_db):
+        """With 2 × 365-day years the response must have exactly those 2 outcome
+        rows sorted by year, each with the expected keys."""
+        db_path, year1, year2 = two_year_db
+        r = client.post("/api/simulate/beredskap", json=VALID_SIM_REQUEST)
+        assert r.status_code == 200
+        outcomes = r.json()["yearly_outcomes"]
+        # At least the two full seeded years must appear (current partial year skipped)
+        years_in_response = [row["year"] for row in outcomes]
+        assert year1 in years_in_response
+        assert year2 in years_in_response
+        # Sorted by year ascending
+        assert years_in_response == sorted(years_in_response)
+        # Each row must have the expected keys
+        expected_keys = {"year", "total_collected_liters", "days_tank_empty",
+                         "min_tank_pct", "longest_dry_spell_days"}
+        for row in outcomes:
+            assert expected_keys <= row.keys()
+        # year1 (wetter, 8 mm) must collect more than year2 (drier, 4 mm)
+        outcome_by_year = {row["year"]: row for row in outcomes}
+        assert (outcome_by_year[year1]["total_collected_liters"]
+                > outcome_by_year[year2]["total_collected_liters"])
 
     def test_scenario_comparison_included(self, seeded_db):
         req = {**VALID_SIM_REQUEST, "climate_scenario": "moderate"}
@@ -164,3 +251,178 @@ class TestCostsEndpoint:
         with_l = client.get("/api/costs?population=4&scale=household&annual_liters=100000").json()
         assert without["cost_per_liter_20"] is None
         assert with_l["cost_per_liter_20"] > 0
+
+
+class TestTreatmentEndpoint:
+    def test_treatment_endpoint(self):
+        r = client.get("/api/treatment?material=takstein&scale=household")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["risk_class"] == "lav"
+        assert body["potable"] is True
+        assert "Sedimentfilter" in body["barriers"]
+
+    def test_treatment_unknown_material_422(self):
+        r = client.get("/api/treatment?material=papp123&scale=household")
+        assert r.status_code == 422
+
+    def test_treatment_infrastructure_scale(self):
+        r = client.get("/api/treatment?material=takstein&scale=infrastructure")
+        assert r.status_code == 200
+        body = r.json()
+        assert "Restklorering" in body["barriers"]
+
+    def test_treatment_kobbertak_not_potable(self):
+        r = client.get("/api/treatment?material=kobbertak")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["potable"] is False
+        assert body["barriers"] == []
+
+    def test_treatment_unknown_scale_422(self):
+        r = client.get("/api/treatment?material=takstein&scale=district")
+        assert r.status_code == 422
+
+    def test_config_includes_roof_materials(self):
+        r = client.get("/api/config")
+        materials = r.json()["roof_materials"]
+        assert any(m["key"] == "takstein" for m in materials)
+
+
+class TestStationSelection:
+    def test_config_includes_stations(self):
+        body = client.get("/api/config").json()
+        assert body["defaults"]["station_id"] == "SN50540"
+        assert any(s["id"] == "SN50540" for s in body["stations"])
+
+    def test_observations_rejects_unknown_station(self):
+        r = client.get("/api/observations?station=SN99999")
+        assert r.status_code == 422
+
+    def test_observations_station_filter_returns_only_that_station(self, seeded_db):
+        # seeded_db seeds exactly 60 rows for SN50500; the response must not
+        # include the SN50540 rows (which would double the count to 120).
+        r = client.get("/api/observations?days=365&station=SN50500")
+        assert r.status_code == 200
+        rows = r.json()
+        # Exactly the 60 seeded SN50500 rows — not mixed with SN50540 rows.
+        assert len(rows) == 60
+
+    def test_simulate_station_param_changes_collected_volume(self, seeded_db):
+        # SN50540 wet days: 6.0 mm; SN50500 wet days: 5.0 mm.
+        # Same roof area and efficiency → SN50540 must collect strictly more.
+        default_body = client.post(
+            "/api/simulate/beredskap", json=VALID_SIM_REQUEST
+        ).json()
+        alt_body = client.post(
+            "/api/simulate/beredskap",
+            json={**VALID_SIM_REQUEST, "station": "SN50500"},
+        ).json()
+        default_collected = default_body["summary"]["total_collected_liters"]
+        alt_collected = alt_body["summary"]["total_collected_liters"]
+        # The station parameter must actually route to different data.
+        assert default_collected > alt_collected, (
+            f"Expected SN50540 ({default_collected} L) > SN50500 ({alt_collected} L)"
+        )
+
+
+class TestBydelEndpoint:
+    def test_bydel_endpoint(self):
+        r = client.get("/api/bydel?participation=0.2")
+        assert r.status_code == 200
+        body = r.json()
+        assert len(body["bydeler"]) == 8
+        assert 0 < body["demand_coverage_pct"] < 1000
+        assert body["participation_pct"] == 0.2
+        assert body["persons_covered"] > 0
+        assert body["assumptions"]
+
+    def test_bydel_default_participation(self):
+        r = client.get("/api/bydel")
+        assert r.status_code == 200
+        assert r.json()["participation_pct"] == 0.20
+
+    def test_bydel_zero_participation_422(self):
+        r = client.get("/api/bydel?participation=0")
+        assert r.status_code == 422
+
+    def test_bydel_over_one_participation_422(self):
+        r = client.get("/api/bydel?participation=1.5")
+        assert r.status_code == 422
+
+
+class TestEnergyEndpoint:
+    def test_energy_endpoint(self):
+        r = client.get("/api/energy?roof_area_m2=120&height_m=6&annual_rainfall_mm=2250")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["annual_energy_kwh"] > 0
+        assert body["annual_liters"] == 2250 * 120
+        assert set(body["co2_offset_g"]) == {"NO", "EU"}
+        assert body["co2_offset_g"]["EU"] > body["co2_offset_g"]["NO"]
+        assert body["equivalents"]["phone_charges"] > 0
+
+    def test_energy_defaults_from_config(self):
+        # height and rainfall fall back to the shared backend defaults
+        r = client.get("/api/energy?roof_area_m2=120")
+        assert r.status_code == 200
+        assert r.json()["annual_energy_kwh"] > 0
+
+    def test_energy_negative_area_422(self):
+        r = client.get("/api/energy?roof_area_m2=-5")
+        assert r.status_code == 422
+
+    def test_energy_zero_height_422(self):
+        r = client.get("/api/energy?roof_area_m2=120&height_m=0")
+        assert r.status_code == 422
+
+
+class TestValidation:
+    @requires_2018
+    def test_validation_returns_2018_backtest(self):
+        r = client.get("/api/validation")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["year"] == 2018
+        assert body["longest_dry_spell"]["days"] >= 20
+        assert len(body["tiers"]) == 3
+
+
+class TestAdminRefresh:
+    def test_refresh_without_token_401(self, monkeypatch):
+        monkeypatch.setenv("REFRESH_TOKEN", "secret-token")
+        r = client.post("/api/admin/refresh")
+        assert r.status_code == 401
+
+    def test_refresh_with_wrong_token_401(self, monkeypatch):
+        monkeypatch.setenv("REFRESH_TOKEN", "secret-token")
+        r = client.post("/api/admin/refresh", headers={"X-Refresh-Token": "wrong"})
+        assert r.status_code == 401
+
+    def test_refresh_unconfigured_token_401(self, monkeypatch):
+        monkeypatch.delenv("REFRESH_TOKEN", raising=False)
+        r = client.post("/api/admin/refresh", headers={"X-Refresh-Token": "anything"})
+        assert r.status_code == 401
+
+    def test_refresh_with_correct_token_runs_pipeline(self, monkeypatch):
+        monkeypatch.setenv("REFRESH_TOKEN", "secret-token")
+        monkeypatch.setattr("backend.pipeline.run", lambda days: 42)
+        r = client.post("/api/admin/refresh", headers={"X-Refresh-Token": "secret-token"})
+        assert r.status_code == 200
+        assert r.json()["rows_stored"] == 42
+
+
+class TestSpaFallback:
+    def test_unmatched_api_path_stays_json_404(self):
+        r = client.get("/api/does-not-exist")
+        assert r.status_code == 404
+        assert r.headers["content-type"].startswith("application/json")
+
+    @pytest.mark.skipif(
+        not (Path(__file__).resolve().parent.parent / "frontend-react" / "dist" / "index.html").exists(),
+        reason="frontend not built (run `npm run build` in frontend-react/)",
+    )
+    def test_client_route_serves_index_html(self):
+        r = client.get("/beregn")
+        assert r.status_code == 200
+        assert "text/html" in r.headers["content-type"]

@@ -146,6 +146,161 @@
 .k-bo-name { font-size: 13px; font-weight: 500; color: var(--k-ink); }
 .k-bo-detail { font-size: 11px; color: var(--k-muted); }
 
+/* Roof-area source: tabs + field */
+.k-roof-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--k-surface);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+}
+.k-roof-tab {
+  flex: 1;
+  padding: 7px 8px;
+  border: none;
+  background: transparent;
+  border-radius: calc(var(--radius-md) - 3px);
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--k-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.k-roof-tab:hover { color: var(--k-ink); }
+.k-roof-tab.active { background: var(--k-white); color: var(--k-ink); font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+.k-roof-area-field {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  border: 1.5px solid var(--k-border);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.875rem;
+  margin-bottom: 10px;
+  background: var(--k-white);
+}
+.k-roof-area-value {
+  flex: 1;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--k-ink);
+}
+.k-roof-area-unit { font-size: 13px; color: var(--k-muted); }
+
+.k-roof-map-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.k-roof-map-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.6rem 1rem;
+  border: 1.5px solid var(--k-blue);
+  border-radius: var(--radius-md);
+  background: var(--k-blue-light);
+  color: var(--k-blue-dark);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.k-roof-map-btn:hover { background: var(--k-white); }
+.k-roof-map-hint { font-size: 11px; color: var(--k-muted); }
+
+/* Roof-measurement modal */
+.k-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 1000;
+}
+.k-modal {
+  background: var(--k-white);
+  border-radius: var(--radius-md);
+  width: min(880px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+}
+.k-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--k-border);
+}
+.k-modal-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--k-blue);
+  margin-bottom: 3px;
+}
+.k-modal-title { font-size: 16px; font-weight: 500; color: var(--k-ink); }
+.k-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--k-muted);
+  cursor: pointer;
+}
+.k-modal-close:hover { color: var(--k-ink); }
+.k-modal-search { padding: 1rem 1.5rem 0; position: relative; z-index: 500; }
+.k-modal-map {
+  flex: 1;
+  min-height: 400px;
+  display: flex;
+  margin: 1rem 1.5rem 0;
+  border: 1px solid var(--k-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.k-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--k-border);
+  flex-wrap: wrap;
+}
+.k-modal-area { font-size: 13px; color: var(--k-muted); }
+.k-modal-area strong { color: var(--k-ink); font-weight: 500; }
+.k-modal-actions { display: flex; gap: 8px; }
+.k-modal-cancel {
+  padding: 0.6rem 1.1rem;
+  border: 1.5px solid var(--k-border);
+  border-radius: var(--radius-md);
+  background: var(--k-white);
+  color: var(--k-ink);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.k-modal-cancel:hover { background: var(--k-surface); }
+.k-modal-use {
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--k-blue);
+  color: white;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.k-modal-use:hover:not(:disabled) { background: var(--k-blue-dark); }
+.k-modal-use:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* People stepper */
 .k-people-row { display: flex; align-items: center; gap: 12px; }
 
@@ -348,7 +503,7 @@
 
 .k-metrics-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
+  grid-template-columns: repeat(4, minmax(0,1fr));
   gap: 10px;
   animation: k-fadeUp 0.4s 0.08s ease both;
 }

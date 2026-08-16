@@ -35,8 +35,8 @@ export default function TakkartResultPanel() {
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         </div>
-        <p className="t-empty-text">Søk opp eller teikn eit tak på kartet</p>
-        <p className="t-empty-sub">Finn adressa di og få takflata automatisk, eller vel «Mål manuelt» og teikn eit polygon.</p>
+        <p className="t-empty-text">Søk opp eller tegn et tak på kartet</p>
+        <p className="t-empty-sub">Finn adressen din og få takflaten automatisk, eller velg «Mål manuelt» og tegn et polygon.</p>
       </div>
     )
   }
@@ -44,7 +44,7 @@ export default function TakkartResultPanel() {
   if (!config) {
     return (
       <div className="t-result-panel t-result-empty">
-        <p className="t-empty-text">Lastar…</p>
+        <p className="t-empty-text">Laster…</p>
       </div>
     )
   }
@@ -72,7 +72,7 @@ export default function TakkartResultPanel() {
       {/* Supply card */}
       <div className="t-supply-card">
         <div className="t-sc-number">{fmt(days)}</div>
-        <div className="t-sc-label">beredskapsdagar per år</div>
+        <div className="t-sc-label">beredskapsdager per år</div>
         <div className={`t-status-pill ${status}`}>{STATUS_LABELS[status]}</div>
       </div>
 
@@ -83,22 +83,22 @@ export default function TakkartResultPanel() {
           <div className="t-mc-val">{fmt(annualL)} <span className="t-mc-unit">L</span></div>
         </div>
         <div className="t-metric-card">
-          <div className="t-mc-label">Dagleg snitt</div>
+          <div className="t-mc-label">Daglig snitt</div>
           <div className="t-mc-val">{fmt(dailyAvg)} <span className="t-mc-unit">L/dag</span></div>
         </div>
         <div className="t-metric-card">
-          <div className="t-mc-label">Dagleg behov</div>
+          <div className="t-mc-label">Daglig behov</div>
           <div className="t-mc-val">{fmt(dailyNeed)} <span className="t-mc-unit">L/dag</span></div>
         </div>
       </div>
 
       {/* People stepper */}
       <div className="t-people-row">
-        <span className="t-people-label">Personar</span>
+        <span className="t-people-label">Personer</span>
         <div className="t-stepper">
-          <button className="t-stepper-btn" type="button" onClick={() => handlePeopleStep(-1)} aria-label="Færre personar">−</button>
+          <button className="t-stepper-btn" type="button" onClick={() => handlePeopleStep(-1)} aria-label="Færre personer">−</button>
           <span className="t-stepper-val">{numPeople}</span>
-          <button className="t-stepper-btn" type="button" onClick={() => handlePeopleStep(1)} aria-label="Fleire personar">+</button>
+          <button className="t-stepper-btn" type="button" onClick={() => handlePeopleStep(1)} aria-label="Flere personer">+</button>
         </div>
         <span className="t-people-note">{lPerDay} L/pers/dag (WHO)</span>
       </div>
@@ -111,7 +111,7 @@ export default function TakkartResultPanel() {
             <div key={rec.days} className="t-tank-opt">
               <div className="t-tank-opt-label">{rec.label}</div>
               <div className="t-tank-opt-liters">{fmt(rec.liters)} L</div>
-              <div className="t-tank-opt-days">{rec.days} dagar</div>
+              <div className="t-tank-opt-days">{rec.days} dager</div>
             </div>
           ))}
         </div>
@@ -128,7 +128,7 @@ export default function TakkartResultPanel() {
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
         </Link>
-        <p className="t-cta-note">Åpnar beredskapssimulering med {Math.round(roofAreaM2)} m² forhåndsutfylt</p>
+        <p className="t-cta-note">Åpner beredskapssimulering med {Math.round(roofAreaM2)} m² forhåndsutfylt</p>
       </div>
 
       {/* Rich simulation (from backend) */}
@@ -145,9 +145,9 @@ export default function TakkartResultPanel() {
             classPrefix="t"
             hideWhenEmpty
             labels={{
-              title: 'Sårbare periodar',
-              badge: n => `${n} tørkeperiodar`,
-              days: n => `${n} dagar`,
+              title: 'Sårbare perioder',
+              badge: n => `${n} tørkeperioder`,
+              days: n => `${n} dager`,
             }}
           />
         </>

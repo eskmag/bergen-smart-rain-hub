@@ -7,6 +7,7 @@
 
 import type { components } from './schema'
 
+export type YearlyOutcome = components['schemas']['YearlyOutcome']
 export type ScaleSchema = components['schemas']['ScaleSchema']
 export type BuildingPreset = components['schemas']['BuildingPreset']
 export type InfrastructureFacility = components['schemas']['InfrastructureFacility']
@@ -23,6 +24,13 @@ export type BeredskapsResponse = components['schemas']['BeredskapsResponse']
 export type CostEstimateRow = components['schemas']['CostEstimateRow']
 export type CostBreakdownItem = components['schemas']['CostBreakdownItem']
 export type CostsResponse = components['schemas']['CostsResponse']
+export type RoofMaterial = components['schemas']['RoofMaterial']
+export type TreatmentResponse = components['schemas']['TreatmentResponse']
+export type StationSchema = components['schemas']['StationSchema']
+export type BydelRow = components['schemas']['BydelRow']
+export type BydelResponse = components['schemas']['BydelResponse']
+export type EnergyResponse = components['schemas']['EnergyResponse']
+export type ValidationResponse = components['schemas']['ValidationResponse']
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, init)
@@ -36,8 +44,10 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   config: () => apiFetch<ConfigResponse>('/api/config'),
 
-  observations: (days = 365) =>
-    apiFetch<Observation[]>(`/api/observations?days=${days}`),
+  observations: (days = 365, station?: string) =>
+    apiFetch<Observation[]>(
+      `/api/observations?days=${days}${station ? `&station=${station}` : ''}`,
+    ),
 
   simulateBeredskap: (req: BeredskapsRequest) =>
     apiFetch<BeredskapsResponse>('/api/simulate/beredskap', {
@@ -50,4 +60,15 @@ export const api = {
     apiFetch<CostsResponse>(
       `/api/costs?population=${population}&scale=${scale}&annual_liters=${annualLiters}`,
     ),
+
+  treatment: (material: string, scale: string) =>
+    apiFetch<TreatmentResponse>(`/api/treatment?material=${material}&scale=${scale}`),
+
+  bydel: (participation: number) =>
+    apiFetch<BydelResponse>(`/api/bydel?participation=${participation}`),
+
+  energy: (roofAreaM2: number, heightM: number) =>
+    apiFetch<EnergyResponse>(`/api/energy?roof_area_m2=${roofAreaM2}&height_m=${heightM}`),
+
+  validation: () => apiFetch<ValidationResponse>('/api/validation'),
 }

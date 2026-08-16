@@ -10,9 +10,16 @@ from backend.analysis import (
     DEFAULT_COLLECTION_EFFICIENCY,
     TANK_RECOMMENDATION_DAYS,
 )
+from backend.config import DEFAULT_STATION_ID
 
 
 # ── Config ──────────────────────────────────────────────────────────────────
+
+class StationSchema(BaseModel):
+    id: str
+    label: str
+    note: str
+
 
 class ScaleSchema(BaseModel):
     key: str
@@ -59,6 +66,14 @@ class ConfigDefaults(BaseModel):
     building_height_m: float = DEFAULT_BUILDING_HEIGHT_M
     annual_rainfall_mm: float = BERGEN_ANNUAL_RAINFALL_MM
     tank_recommendation_days: list[int] = list(TANK_RECOMMENDATION_DAYS)
+    station_id: str = DEFAULT_STATION_ID
+
+
+class RoofMaterial(BaseModel):
+    key: str
+    label: str
+    risk_class: str
+    description: str
 
 
 class ConfigResponse(BaseModel):
@@ -69,6 +84,8 @@ class ConfigResponse(BaseModel):
     climate_scenarios: list[ClimateScenario]
     water_needs: dict[str, float]
     defaults: ConfigDefaults
+    roof_materials: list[RoofMaterial]
+    stations: list[StationSchema]
 
 
 # ── Observations ─────────────────────────────────────────────────────────────
@@ -94,6 +111,7 @@ class BeredskapsRequest(BaseModel):
     efficiency: float = DEFAULT_COLLECTION_EFFICIENCY
     usage_level: str = "survival_total"
     climate_scenario: str = "historical"
+    station: str = DEFAULT_STATION_ID
 
 
 class SimulationRow(BaseModel):
@@ -119,11 +137,20 @@ class ScenarioComparison(BaseModel):
     longest_dry_spell: int
 
 
+class YearlyOutcome(BaseModel):
+    year: int
+    total_collected_liters: float
+    days_tank_empty: int
+    min_tank_pct: float
+    longest_dry_spell_days: int
+
+
 class BeredskapsResponse(BaseModel):
     summary: dict[str, Any]
     simulation_series: list[SimulationRow]
     dry_spells: list[DrySpell]
     scenario_comparison: list[ScenarioComparison] | None = None
+    yearly_outcomes: list[YearlyOutcome] = []
 
 
 # ── Cost analysis ─────────────────────────────────────────────────────────────
@@ -159,3 +186,79 @@ class CostsResponse(BaseModel):
     capital_breakdown: list[CostBreakdownItem]
     operating_breakdown: list[CostBreakdownItem]
     all_estimates: list[CostEstimateRow]
+
+
+# ── Water quality / treatment ────────────────────────────────────────────────
+
+class TreatmentResponse(BaseModel):
+    material: str
+    material_label: str
+    risk_class: str
+    potable: bool
+    barriers: list[str]
+    cost_low_nok: int
+    cost_high_nok: int
+    note: str
+
+
+# ── Bydel potential (policy view) ────────────────────────────────────────────
+
+class BydelRow(BaseModel):
+    key: str
+    label: str
+    population: int
+    suitable_roof_m2: int
+    daily_yield_liters: int
+    demand_liters: int
+    coverage_pct: float
+
+
+class BydelResponse(BaseModel):
+    bydeler: list[BydelRow]
+    participation_pct: float
+    total_daily_liters: int
+    total_demand_liters: int
+    demand_coverage_pct: float
+    persons_covered: int
+    roof_m2_per_capita: float
+    assumptions: list[str]
+
+
+# ── Energy (BKK angle) ───────────────────────────────────────────────────────
+
+class EnergyResponse(BaseModel):
+    annual_liters: float
+    annual_energy_kwh: float
+    co2_offset_g: dict[str, float]
+    equivalents: dict[str, float]
+
+
+# ── Validation (2018 dry-spring backtest) ────────────────────────────────────
+
+class LongestSpell(BaseModel):
+    days: int
+    start: str | None
+    end: str | None
+
+
+class TankTier(BaseModel):
+    label: str
+    liters: int
+    days_tank_empty: int
+    min_tank_liters: int
+
+
+class ValidationCase(BaseModel):
+    roof_m2: int
+    population: int
+    efficiency: float
+
+
+class ValidationResponse(BaseModel):
+    station_id: str
+    year: int
+    total_rainfall_mm: float
+    n_dry_spells: int
+    longest_dry_spell: LongestSpell
+    case: ValidationCase
+    tiers: list[TankTier]
