@@ -38,4 +38,9 @@ export const SOURCES: Source[] = [
     label: 'Metodikk, ytelsesformel V = A × R × C × e og kostnadsrammer',
     ref: 'docs/bergen_rainwater_emergency_supply.md (prosjektets rammeverk)',
   },
+  {
+    id: 'costs',
+    label: 'Kostnadsanslag er bransjeestimater, ikke innhentede leverandørtilbud',
+    ref: 'docs/bergen_rainwater_emergency_supply.md §14.2 (indikative anslag)',
+  },
 ]

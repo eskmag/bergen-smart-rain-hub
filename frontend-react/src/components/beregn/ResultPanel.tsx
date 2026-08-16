@@ -190,8 +190,8 @@ export default function ResultPanel() {
         <Kjelder
           ids={
             scenario === 'historical'
-              ? ['who', 'met', 'framework']
-              : ['who', 'met', 'framework', 'klima']
+              ? ['who', 'met', 'framework', 'costs']
+              : ['who', 'met', 'framework', 'klima', 'costs']
           }
         />
       </div>

@@ -132,6 +132,7 @@ export default function Rapport() {
               <div><dt>Investering</dt><dd>~{fmt(costs.capital)} kr</dd></div>
               <div><dt>Årlig drift</dt><dd>~{fmt(costs.annual_op)} kr/år</dd></div>
             </dl>
+            <p className="r-cost-caveat">Indikative anslag, ikke innhentede leverandørtilbud.</p>
           </section>
         )}
 
