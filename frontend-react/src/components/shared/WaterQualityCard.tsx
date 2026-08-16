@@ -11,8 +11,8 @@ const RISK_LABELS: Record<string, string> = {
 interface WaterQualityCardProps {
   material: string
   scale: string
-  // 'k' (kalkulator) or 't' (takkart) — selects the page's CSS namespace
-  classPrefix: 'k' | 't'
+  // 'k' (kalkulator), 't' (takkart), or 'r' (rapport) — selects the page's CSS namespace
+  classPrefix: 'k' | 't' | 'r'
 }
 
 export function WaterQualityCard({ material, scale, classPrefix: p }: WaterQualityCardProps) {

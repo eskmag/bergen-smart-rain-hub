@@ -4,8 +4,8 @@ import { api } from '../../api/client'
 interface EnergyCardProps {
   totalRoofM2: number
   heightM: number
-  // 'k' (kalkulator) or 't' (takkart) — selects the page's CSS namespace
-  classPrefix: 'k' | 't'
+  // 'k' (kalkulator), 't' (takkart), or 'r' (rapport) — selects the page's CSS namespace
+  classPrefix: 'k' | 't' | 'r'
 }
 
 function fmt(n: number, decimals = 0) {

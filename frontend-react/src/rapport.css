@@ -1,0 +1,143 @@
+/* Printable beredskapsrapport — /rapport. r-prefixed classes reused by the
+   shared result components (SimulationChart, DrySpellsList, WaterQualityCard,
+   YearlyOutcomes) via classPrefix="r". Screen styling here is a plain A4-page
+   look; the @media print block hides chrome and locks page geometry for
+   "Lagre som PDF". */
+
+.r-shell {
+  --r-ink:    var(--color-text, #1f2937);
+  --r-muted:  var(--color-text-muted, #6b7280);
+  --r-border: var(--color-border, #e5e7eb);
+  --r-amber:  #B45309;
+  --r-amber-light: #FEF3C7;
+
+  min-height: 100vh;
+  background: #f3f4f6;
+  color: var(--r-ink);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.r-toolbar,
+.r-toolbar-bottom {
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.r-toolbar-bottom { justify-content: flex-start; padding-bottom: 2rem; }
+
+.r-toolbar a { color: var(--color-primary); text-decoration: none; font-size: 13px; }
+.r-toolbar a:hover { text-decoration: underline; }
+
+.r-print-btn,
+.r-toolbar-bottom button {
+  padding: 0.6rem 1.1rem;
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-primary);
+  color: white;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.r-toolbar-bottom button {
+  background: white;
+  color: var(--color-primary);
+}
+
+.r-empty {
+  max-width: 210mm;
+  margin: 4rem auto;
+  text-align: center;
+  color: var(--r-muted);
+}
+.r-empty a { color: var(--color-primary); }
+
+.r-page {
+  max-width: 210mm;
+  margin: 0 auto 2rem;
+  background: white;
+  border: 1px solid var(--r-border);
+  padding: 18mm;
+}
+
+.r-header h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+.r-date { font-size: 12px; color: var(--r-muted); margin: 0; }
+
+.r-section { margin-top: 1.75rem; }
+.r-section h2 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--r-muted);
+  margin: 0 0 0.75rem;
+  border-bottom: 1px solid var(--r-border);
+  padding-bottom: 0.35rem;
+}
+
+.r-params {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem 1.5rem;
+  margin: 0;
+}
+.r-params > div { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px dotted var(--r-border); padding-bottom: 0.25rem; }
+.r-params dt { color: var(--r-muted); font-weight: 400; }
+.r-params dd { margin: 0; font-weight: 500; text-align: right; }
+
+.r-disclaimer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--r-border);
+  font-size: 11px;
+  color: var(--r-muted);
+  font-style: italic;
+}
+
+/* Reused-component styling under the 'r' classPrefix */
+.r-chart-card,
+.r-dry-spells-card {
+  border: 1px solid var(--r-border);
+  border-radius: 6px;
+  padding: 1rem;
+}
+.r-chart-header,
+.r-ds-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.r-chart-title,
+.r-ds-title { font-size: 13px; font-weight: 500; }
+.r-chart-legend { display: flex; gap: 1rem; }
+.r-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--r-muted); }
+.r-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+.r-placeholder { color: var(--r-muted); opacity: 0.6; }
+
+.r-ds-badge {
+  font-size: 11px; padding: 3px 8px; background: var(--r-amber-light); color: var(--r-amber); border-radius: 4px;
+}
+.r-ds-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.5rem 0; border-bottom: 1px solid var(--r-border); font-size: 13px; gap: 1rem;
+}
+.r-ds-row:last-child { border-bottom: none; }
+.r-ds-dates { color: var(--r-muted); font-size: 12px; }
+.r-ds-days { font-weight: 500; }
+.r-ds-bar-wrap { flex: 1; }
+.r-ds-bar { height: 4px; border-radius: 2px; background: var(--r-amber-light); position: relative; }
+.r-ds-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--r-amber); border-radius: 2px; }
+.r-ds-tag-longest { font-size: 12px; color: var(--r-amber); font-weight: 500; flex-shrink: 0; }
+.r-ds-tag-muted { font-size: 12px; color: var(--r-muted); flex-shrink: 0; }
+.r-ds-empty { font-size: 13px; color: var(--r-muted); }
+
+@page { size: A4; margin: 18mm; }
+
+@media print {
+  .no-print { display: none !important; }
+  .r-shell { background: white; }
+  .r-page { border: none; padding: 0; max-width: none; margin: 0; }
+  .r-chart-card, .r-dry-spells-card { break-inside: avoid; }
+  .r-section { break-inside: avoid; }
+}

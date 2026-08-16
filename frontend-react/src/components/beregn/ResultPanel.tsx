@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../../api/client'
 import { useBeredskap } from '../../context/BeredskapsContext'
 import SimulationChart from '../shared/SimulationChart'
@@ -20,6 +21,7 @@ function verdictFor(daysTankEmpty: number) {
 }
 
 export default function ResultPanel() {
+  const navigate = useNavigate()
   const {
     buildingKey, roofSource,
     simResult, isSimPending,
@@ -172,6 +174,16 @@ export default function ResultPanel() {
           stationLabel={stationLabel}
         />
       )}
+
+      {/* Report */}
+      <button
+        className="k-roof-map-btn"
+        style={{ alignSelf: 'flex-start' }}
+        onClick={() => navigate('/rapport')}
+        disabled={!simResult}
+      >
+        Generer rapport
+      </button>
 
       {/* Kjelder */}
       <div className="k-data-note">

@@ -2,8 +2,8 @@ import type { YearlyOutcome } from '../../api/client'
 
 interface YearlyOutcomesProps {
   outcomes: YearlyOutcome[]
-  // 'k' (kalkulator) or 't' (takkart) — selects the page's CSS namespace
-  classPrefix: 'k' | 't'
+  // 'k' (kalkulator), 't' (takkart), or 'r' (rapport) — selects the page's CSS namespace
+  classPrefix: 'k' | 't' | 'r'
   stationLabel?: string
 }
 
