@@ -24,7 +24,7 @@ export default function ResultPanel() {
   const navigate = useNavigate()
   const {
     buildingKey, roofSource,
-    simResult, isSimPending,
+    simResult, isSimPending, isStale,
     population, scale, annualLiters, usageLevel, roofMaterial, station, scenario,
     roofPerBuilding, numBuildings, heightM,
   } = useBeredskap()
@@ -71,6 +71,7 @@ export default function ResultPanel() {
         <div className="k-rh-verdict">
           Beredskapsforsyning · {fmt(population)} {population === 1 ? 'person' : 'personer'} · {roofDescriptor}
         </div>
+        {!loading && isStale && <div className="k-rh-updating">Oppdaterer…</div>}
         <div className="k-rh-number">{loading ? '—' : fmt(supplyDays)}</div>
         <div className="k-rh-unit">dager med trygg vannforsyning</div>
         {!loading && (

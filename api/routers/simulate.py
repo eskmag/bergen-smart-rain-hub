@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from backend.config import DB_PATH, DEFAULT_STATION_ID, STATIONS, default_date_range
 from backend.database import init_db, get_observations
 from backend.analysis import (
-    Building, storage_simulation, emergency_summary, find_dry_spells,
+    Building, storage_simulation, emergency_summary,
     yearly_outcomes,
 )
 from backend.climate import apply_climate_projection, compare_scenarios
@@ -69,7 +69,10 @@ def simulate_beredskap(req: BeredskapsRequest):
         for _, row in sim.iterrows()
     ]
 
-    dry_spells_df = find_dry_spells(df_scenario)
+    # emergency_summary already ran find_dry_spells over this same frame and
+    # returned it under "dry_spells" (excluded from the serialised summary
+    # above) — reuse it rather than recomputing.
+    dry_spells_df = summary_raw["dry_spells"]
     dry_spells = [
         DrySpell(
             start=row["start"].strftime("%Y-%m-%d"),
