@@ -25,22 +25,7 @@ export default function LandingTools() {
           </Link>
         </div>
         <div className="l-tool-cell">
-          <div className="l-tool-index">02 · Takmåling</div>
-          <h3 className="l-tool-title">Mål takflaten din</h3>
-          <p className="l-tool-body">
-            Søk opp adressen din og få takflaten hentet automatisk fra kartet, eller tegn et polygon
-            manuelt. Målingen er nå en del av kalkulatoren — det målte takarealet driver årsoppsamling
-            og beredskapsdager direkte, uten at du trenger å velge bygningstype.
-          </p>
-          <Link to="/beregn" className="l-tool-link">
-            Mål taket i kalkulatoren
-            <svg className="l-icon-sm" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-        <div className="l-tool-cell">
-          <div className="l-tool-index">03 · Potensial</div>
+          <div className="l-tool-index">02 · Potensial</div>
           <h3 className="l-tool-title">Se hele byens potensial</h3>
           <p className="l-tool-body">
             Policy-visningen for kommune og beredskapsetater: hvor mange mennesker kan få dekket

@@ -10,7 +10,7 @@ export default function Kjelder({ ids }: KjelderProps) {
 
   return (
     <details style={{ fontSize: '0.85rem', color: 'var(--text-muted, #6b7280)' }}>
-      <summary style={{ cursor: 'pointer', fontWeight: 500 }}>Kjelder og forutsetninger</summary>
+      <summary style={{ cursor: 'pointer', fontWeight: 500 }}>Kilder og forutsetninger</summary>
       <ul style={{ margin: '0.6rem 0 0', paddingLeft: '1.25rem' }}>
         {sources.map(s => (
           <li key={s.id} style={{ margin: '0.3rem 0' }}>
