@@ -215,5 +215,8 @@ docs/
 .claude/
 CLAUDE.md
 # data
+# rain.db is tracked deliberately — the Dockerfile bakes it into the deploy
+# image, so it has to exist in a fresh clone (see docs/deployment.md).
 data/*.db
+!data/rain.db
 .DS_Store
