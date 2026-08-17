@@ -34,7 +34,7 @@ requires_2018 = pytest.mark.skipif(
 
 @requires_2018
 def test_2018_dry_spring_detected():
-    from scripts.backtest_2018 import backtest_2018
+    from backend.backtest import backtest_2018
 
     result = backtest_2018()
     ls = result["longest_dry_spell"]
@@ -46,7 +46,7 @@ def test_2018_dry_spring_detected():
 
 @requires_2018
 def test_backtest_reports_all_three_tiers():
-    from scripts.backtest_2018 import backtest_2018
+    from backend.backtest import backtest_2018
 
     result = backtest_2018()
     assert len(result["tiers"]) == 3

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from scripts.backtest_2018 import backtest_2018
+from backend.backtest import backtest_2018
 from api.schemas import ValidationResponse
 
 router = APIRouter()
