@@ -14,9 +14,11 @@ interface RoofMapModalProps {
   onClose: () => void
 }
 
-// Full-width overlay for measuring a roof: search a Bergen address to pull the
-// building footprint, or draw a polygon manually. Commits the chosen polygon
-// back to the calculator via onUse.
+// Full-width overlay for measuring a roof: search a Bergen address to bring the
+// building on screen, then trace the roof. Drawing is the measurement — there is
+// no automatic footprint lookup, because no open source of building polygons
+// will serve one reliably (see AddressSearch for what was tried).
+// Commits the drawn polygon back to the calculator via onUse.
 export default function RoofMapModal({ initialPolygon, onUse, onClose }: RoofMapModalProps) {
   const [polygon, setPolygon] = useState<Feature<Polygon> | null>(initialPolygon)
   const [flyToPoint, setFlyToPoint] = useState<[number, number] | null>(null)
@@ -29,7 +31,7 @@ export default function RoofMapModal({ initialPolygon, onUse, onClose }: RoofMap
         <div className="k-modal-header">
           <div>
             <div className="k-modal-eyebrow">Mål taket</div>
-            <div className="k-modal-title">Søk adresse eller tegn takflaten</div>
+            <div className="k-modal-title">Finn adressen, og tegn takflaten</div>
           </div>
           <button className="k-modal-close" type="button" onClick={onClose} aria-label="Lukk">
             ×
@@ -37,7 +39,7 @@ export default function RoofMapModal({ initialPolygon, onUse, onClose }: RoofMap
         </div>
 
         <div className="k-modal-search">
-          <AddressSearch onPolygon={setPolygon} onFlyTo={setFlyToPoint} />
+          <AddressSearch onFlyTo={setFlyToPoint} />
         </div>
 
         <div className="k-modal-map">
@@ -54,7 +56,7 @@ export default function RoofMapModal({ initialPolygon, onUse, onClose }: RoofMap
           <div className="k-modal-area">
             {roofAreaM2 !== null
               ? <>Målt takflate: <strong>{fmt(roofAreaM2)} m²</strong></>
-              : 'Søk opp en adresse eller tegn et polygon på kartet'}
+              : 'Søk opp adressen, og klikk rundt taket for å måle det'}
           </div>
           <div className="k-modal-actions">
             <button className="k-modal-cancel" type="button" onClick={onClose}>

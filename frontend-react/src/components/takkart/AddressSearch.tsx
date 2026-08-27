@@ -1,21 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import type { Feature, Polygon } from 'geojson'
 import '../../takkart.css'
 
 interface AddressSearchProps {
-  onPolygon: (feature: Feature<Polygon> | null) => void
   onFlyTo: (point: [number, number] | null) => void
 }
 
 interface GeonorgeAddress {
   adressetekst: string
   representasjonspunkt: { lat: number; lon: number }
-}
-
-interface OverpassElement {
-  type: 'way' | 'relation'
-  geometry?: { lat: number; lon: number }[]
-  members?: { type: string; geometry?: { lat: number; lon: number }[] }[]
 }
 
 // Geonorge's `sok` matches whole words, not prefixes: "Torgall" returns 0 hits
@@ -37,74 +29,9 @@ function wildcardQuery(raw: string): string {
   return tokens.join(' ')
 }
 
-function pointInPolygon(pt: [number, number], ring: [number, number][]): boolean {
-  let inside = false
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const xi = ring[i][0], yi = ring[i][1]
-    const xj = ring[j][0], yj = ring[j][1]
-    if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) {
-      inside = !inside
-    }
-  }
-  return inside
-}
-
-function ringToCoords(geom: { lat: number; lon: number }[]): [number, number][] {
-  return geom.map(p => [p.lon, p.lat])
-}
-
-function buildPolygonFeature(coords: [number, number][]): Feature<Polygon> {
-  const closed = coords[0][0] === coords[coords.length - 1][0] &&
-    coords[0][1] === coords[coords.length - 1][1]
-      ? coords
-      : [...coords, coords[0]]
-  return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [closed] } }
-}
-
-async function fetchFootprint(
-  lat: number,
-  lon: number,
-): Promise<Feature<Polygon> | null> {
-  const query = `[out:json];(way(around:35,${lat},${lon})["building"];relation(around:35,${lat},${lon})["building"];);out geom;`
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'BergenSmartRainHub/1.0',
-    },
-    body: `data=${encodeURIComponent(query)}`,
-  })
-  if (!res.ok) throw new Error(`Overpass ${res.status}`)
-  const data = await res.json() as { elements: OverpassElement[] }
-
-  const pt: [number, number] = [lon, lat]
-  let best: Feature<Polygon> | null = null
-
-  for (const el of data.elements) {
-    if (el.type === 'way' && el.geometry && el.geometry.length >= 3) {
-      const coords = ringToCoords(el.geometry)
-      const feature = buildPolygonFeature(coords)
-      if (pointInPolygon(pt, coords)) return feature
-      best = best ?? feature
-    }
-    if (el.type === 'relation' && el.members) {
-      const outer = el.members.find(m => m.type === 'way' && m.geometry)
-      if (outer?.geometry && outer.geometry.length >= 3) {
-        const coords = ringToCoords(outer.geometry)
-        const feature = buildPolygonFeature(coords)
-        if (pointInPolygon(pt, coords)) return feature
-        best = best ?? feature
-      }
-    }
-  }
-  return best
-}
-
-export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps) {
+export default function AddressSearch({ onFlyTo }: AddressSearchProps) {
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<GeonorgeAddress[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [searchFailed, setSearchFailed] = useState(false)
   const [open, setOpen] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -149,25 +76,17 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
     return () => document.removeEventListener('mousedown', onClick)
   }, [])
 
-  async function selectAddress(addr: GeonorgeAddress) {
+  // Navigation only. Automatic footprint lookup used to live here, via
+  // Overpass, and it could not be made to work: Overpass answers 406 to any
+  // request carrying a deployed site's Referer, its per-IP rate limit is
+  // unusable from a shared cloud egress, and it blocks a developer's own
+  // address after modest use. Drawing the roof is the reliable path, so the
+  // search does what it can do dependably — puts the right roof on screen.
+  function selectAddress(addr: GeonorgeAddress) {
     setQuery(addr.adressetekst)
     setOpen(false)
-    setError(null)
     const { lat, lon } = addr.representasjonspunkt
     onFlyTo([lat, lon])
-    setLoading(true)
-    try {
-      const footprint = await fetchFootprint(lat, lon)
-      if (footprint) {
-        onPolygon(footprint)
-      } else {
-        setError('Fant ingen bygningsfotavtrykk i nærheten. Prøv å måle manuelt.')
-      }
-    } catch {
-      setError('Kunne ikke hente bygningsdata. Prøv igjen eller mål manuelt.')
-    } finally {
-      setLoading(false)
-    }
   }
 
   return (
@@ -179,13 +98,12 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
         <input
           className="t-address-input"
           type="text"
-          placeholder="Søk adresse i Bergen…"
+          placeholder="Søk adresse for å finne taket…"
           value={query}
           onChange={e => setQuery(e.target.value)}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           autoComplete="off"
         />
-        {loading && <div className="t-address-spinner" />}
       </div>
       {open && suggestions.length === 0 && (
         <div className="t-address-dropdown">
@@ -214,8 +132,6 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
           ))}
         </ul>
       )}
-      {error && <p className="t-address-error">{error}</p>}
-      {/* TODO (produksjon): Bytt Overpass mot Kartverket FKB-Bygning for offisielle takflater */}
     </div>
   )
 }
