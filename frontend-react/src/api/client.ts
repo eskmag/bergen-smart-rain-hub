@@ -28,6 +28,7 @@ export type RoofMaterial = components['schemas']['RoofMaterial']
 export type TreatmentResponse = components['schemas']['TreatmentResponse']
 export type StationSchema = components['schemas']['StationSchema']
 export type BydelRow = components['schemas']['BydelRow']
+export type RoofFootprintResponse = components['schemas']['RoofFootprintResponse']
 export type BydelResponse = components['schemas']['BydelResponse']
 export type EnergyResponse = components['schemas']['EnergyResponse']
 export type ValidationResponse = components['schemas']['ValidationResponse']
@@ -71,4 +72,10 @@ export const api = {
     apiFetch<EnergyResponse>(`/api/energy?roof_area_m2=${roofAreaM2}&height_m=${heightM}`),
 
   validation: () => apiFetch<ValidationResponse>('/api/validation'),
+
+  // Proxied through our backend rather than called directly: Overpass 406s
+  // on a deployed site's Referer, and OSM wants a User-Agent the browser
+  // will not let us set.
+  roofFootprint: (lat: number, lon: number) =>
+    apiFetch<RoofFootprintResponse>(`/api/roof/footprint?lat=${lat}&lon=${lon}`),
 }

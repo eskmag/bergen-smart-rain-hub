@@ -146,6 +146,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refresh Data */
+        post: operations["refresh_data_api_admin_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roof/footprint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Roof Footprint
+         * @description Building outline at a coordinate, proxied from OSM.
+         *
+         *     Proxied rather than called from the browser: Overpass returns a
+         *     deterministic 406 for requests carrying a deployed site's Referer, and OSM's
+         *     policy wants an identifying User-Agent that a browser cannot set.
+         */
+        get: operations["get_roof_footprint_api_roof_footprint_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -453,6 +494,25 @@ export interface components {
             precipitation_mm: number;
             /** Air Temperature C */
             air_temperature_c?: number | null;
+        };
+        /** RoofFootprintResponse */
+        RoofFootprintResponse: {
+            /** Found */
+            found: boolean;
+            /** Geometry */
+            geometry?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Source
+             * @default openstreetmap
+             */
+            source: string;
+            /**
+             * Attribution
+             * @default © OpenStreetMap-bidragsytere
+             */
+            attribution: string;
         };
         /** RoofMaterial */
         RoofMaterial: {
@@ -840,6 +900,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ValidationResponse"];
+                };
+            };
+        };
+    };
+    refresh_data_api_admin_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-refresh-token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_roof_footprint_api_roof_footprint_get: {
+        parameters: {
+            query: {
+                lat: number;
+                lon: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoofFootprintResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
