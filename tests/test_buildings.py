@@ -51,7 +51,7 @@ class TestFootprintLookup:
     def test_returns_polygon_containing_the_point(self, monkeypatch):
         monkeypatch.setattr(
             buildings, "_post",
-            lambda url, query: FakeResponse(payload=elements(ELSEWHERE, INSIDE)),
+            lambda url, query, timeout=None: FakeResponse(payload=elements(ELSEWHERE, INSIDE)),
         )
         geom = buildings.footprint_for(*POINT)
         assert geom["type"] == "Polygon"
@@ -63,14 +63,14 @@ class TestFootprintLookup:
     def test_prefers_containing_polygon_over_first_hit(self, monkeypatch):
         monkeypatch.setattr(
             buildings, "_post",
-            lambda url, query: FakeResponse(payload=elements(ELSEWHERE, INSIDE)),
+            lambda url, query, timeout=None: FakeResponse(payload=elements(ELSEWHERE, INSIDE)),
         )
         geom = buildings.footprint_for(*POINT)
         assert [5.3260, 60.3890] in geom["coordinates"][0]
 
     def test_returns_none_when_no_buildings(self, monkeypatch):
         monkeypatch.setattr(
-            buildings, "_post", lambda url, query: FakeResponse(payload={"elements": []})
+            buildings, "_post", lambda url, query, timeout=None: FakeResponse(payload={"elements": []})
         )
         assert buildings.footprint_for(*POINT) is None
 
@@ -79,7 +79,7 @@ class TestRetryPolicy:
     def test_retries_transient_5xx_then_succeeds(self, monkeypatch):
         calls = []
 
-        def fake_post(url, query):
+        def fake_post(url, query, timeout=None):
             calls.append(url)
             if len(calls) == 1:
                 return FakeResponse(status_code=504)
@@ -97,7 +97,7 @@ class TestRetryPolicy:
             buildings.clear_cache()
             calls = []
 
-            def fake_post(url, query, _s=status):
+            def fake_post(url, query, timeout=None, _s=status):
                 calls.append(url)
                 return FakeResponse(status_code=_s)
 
@@ -110,7 +110,7 @@ class TestRetryPolicy:
 
     def test_raises_when_every_endpoint_fails(self, monkeypatch):
         monkeypatch.setattr(
-            buildings, "_post", lambda url, query: FakeResponse(status_code=504)
+            buildings, "_post", lambda url, query, timeout=None: FakeResponse(status_code=504)
         )
         monkeypatch.setattr(buildings.time, "sleep", lambda s: None)
         with pytest.raises(buildings.FootprintUnavailable):
@@ -119,7 +119,7 @@ class TestRetryPolicy:
     def test_network_error_is_retried(self, monkeypatch):
         calls = []
 
-        def fake_post(url, query):
+        def fake_post(url, query, timeout=None):
             calls.append(url)
             if len(calls) == 1:
                 raise requests.RequestException("boom")
@@ -134,7 +134,7 @@ class TestCaching:
     def test_repeat_lookup_does_not_hit_the_network(self, monkeypatch):
         calls = []
 
-        def fake_post(url, query):
+        def fake_post(url, query, timeout=None):
             calls.append(url)
             return FakeResponse(payload=elements(INSIDE))
 
@@ -148,7 +148,7 @@ class TestCaching:
         # burns quota against a free endpoint for nothing.
         calls = []
 
-        def fake_post(url, query):
+        def fake_post(url, query, timeout=None):
             calls.append(url)
             return FakeResponse(payload={"elements": []})
 
@@ -160,7 +160,7 @@ class TestCaching:
     def test_nearby_points_share_a_cache_entry(self, monkeypatch):
         calls = []
 
-        def fake_post(url, query):
+        def fake_post(url, query, timeout=None):
             calls.append(url)
             return FakeResponse(payload=elements(INSIDE))
 
@@ -185,3 +185,31 @@ class TestPolicyCompliance:
         # warns that impersonating another app gets you blocked.
         assert "BergenSmartRainHub" in ua
         assert "Mozilla" not in ua
+
+
+class TestTimeBudget:
+    def test_stops_once_the_budget_is_spent(self, monkeypatch):
+        calls = []
+
+        def fake_post(url, query, timeout=None):
+            calls.append(url)
+            return FakeResponse(status_code=504)
+
+        monkeypatch.setattr(buildings, "_post", fake_post)
+        monkeypatch.setattr(buildings, "TOTAL_BUDGET_S", 0)
+        monkeypatch.setattr(buildings.time, "sleep", lambda s: None)
+        with pytest.raises(buildings.FootprintUnavailable):
+            buildings.footprint_for(*POINT)
+        # One attempt is always allowed; nothing beyond it once over budget.
+        assert len(calls) == 1
+
+    def test_passes_a_shrinking_timeout_to_each_request(self, monkeypatch):
+        seen = []
+
+        def fake_post(url, query, timeout=None):
+            seen.append(timeout)
+            return FakeResponse(payload=elements(INSIDE))
+
+        monkeypatch.setattr(buildings, "_post", fake_post)
+        buildings.footprint_for(*POINT)
+        assert seen and seen[0] <= buildings.REQUEST_TIMEOUT_S

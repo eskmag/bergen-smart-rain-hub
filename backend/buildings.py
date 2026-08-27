@@ -40,10 +40,17 @@ OVERPASS_ENDPOINTS = (
 USER_AGENT = "BergenSmartRainHub/1.0 (+https://github.com/eskmag/bergen-smart-rain-hub)"
 
 SEARCH_RADIUS_M = 35
-REQUEST_TIMEOUT_S = 30
+REQUEST_TIMEOUT_S = 4
 
 # Retry only transient load; see _attempt for what counts as transient.
-RETRY_DELAYS_S = (0.7, 1.8)
+RETRY_DELAYS_S = (0.5,)
+
+# Hard ceiling on the whole lookup, not just one request. Render's shared egress
+# IP is effectively rate-limited out of Overpass (which allows 2 slots per IP),
+# so in production every attempt tends to time out — measured 73-111s to fail
+# before this existed. Someone waiting on a spinner needs a fast "draw it
+# yourself" far more than they need a sixth attempt.
+TOTAL_BUDGET_S = 8
 
 # ~1 m at Bergen's latitude, so a re-click on the same building reuses the entry
 # instead of spending quota. Entries are held in-process: Render's free tier
@@ -63,12 +70,12 @@ def clear_cache() -> None:
     _cache.clear()
 
 
-def _post(url: str, query: str):
+def _post(url: str, query: str, timeout: float = REQUEST_TIMEOUT_S):
     return requests.post(
         url,
         data={"data": query},
         headers={"User-Agent": USER_AGENT},
-        timeout=REQUEST_TIMEOUT_S,
+        timeout=timeout,
     )
 
 
@@ -114,10 +121,10 @@ def _pick(elements, lat: float, lon: float) -> dict | None:
     return fallback
 
 
-def _attempt(url: str, query: str):
+def _attempt(url: str, query: str, timeout: float = REQUEST_TIMEOUT_S):
     """Return (payload, retryable). payload is None when the attempt failed."""
     try:
-        response = _post(url, query)
+        response = _post(url, query, timeout)
     except requests.RequestException as exc:
         logger.warning("Overpass-kall feilet mot %s: %s", url, exc)
         return None, True
@@ -157,11 +164,20 @@ def footprint_for(lat: float, lon: float) -> dict | None:
         return hit[1]
 
     query = _query(lat, lon)
+    started = time.monotonic()
+    first = True
     for url in OVERPASS_ENDPOINTS:
         for attempt in range(len(RETRY_DELAYS_S) + 1):
+            remaining = TOTAL_BUDGET_S - (time.monotonic() - started)
+            # Always allow one attempt, then stop as soon as the budget is spent.
+            if not first and remaining <= 0:
+                raise FootprintUnavailable("Overpass svarte ikke innen tidsbudsjettet")
+            first = False
             if attempt:
                 time.sleep(RETRY_DELAYS_S[attempt - 1])
-            payload, retryable = _attempt(url, query)
+            payload, retryable = _attempt(
+                url, query, min(REQUEST_TIMEOUT_S, max(remaining, 0.5))
+            )
             if payload is not None:
                 geometry = _pick(payload.get("elements", []), lat, lon)
                 _cache[key] = (time.time(), geometry)
