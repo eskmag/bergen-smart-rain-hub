@@ -426,3 +426,37 @@ class TestSpaFallback:
         r = client.get("/beregn")
         assert r.status_code == 200
         assert "text/html" in r.headers["content-type"]
+
+    @pytest.mark.skipif(
+        not (Path(__file__).resolve().parent.parent / "frontend-react" / "dist" / "index.html").exists(),
+        reason="frontend not built (run `npm run build` in frontend-react/)",
+    )
+    def test_missing_asset_is_404_not_html(self):
+        # A stale cached index.html names a bundle hash that no longer exists.
+        # Serving index.html for it hands the browser HTML where it expects
+        # JavaScript, which kills the whole app silently — 404 instead.
+        r = client.get("/assets/index-DOESNOTEXIST.js")
+        assert r.status_code == 404
+        assert "text/html" not in r.headers["content-type"]
+
+    @pytest.mark.skipif(
+        not (Path(__file__).resolve().parent.parent / "frontend-react" / "dist" / "index.html").exists(),
+        reason="frontend not built (run `npm run build` in frontend-react/)",
+    )
+    def test_index_html_must_revalidate(self):
+        # index.html names the fingerprinted bundles, so it must never be
+        # served stale from cache.
+        r = client.get("/beregn")
+        assert "no-cache" in r.headers.get("cache-control", "")
+
+    @pytest.mark.skipif(
+        not (Path(__file__).resolve().parent.parent / "frontend-react" / "dist" / "assets").exists(),
+        reason="frontend not built (run `npm run build` in frontend-react/)",
+    )
+    def test_hashed_assets_are_immutable(self):
+        assets = (Path(__file__).resolve().parent.parent
+                  / "frontend-react" / "dist" / "assets")
+        name = next(p.name for p in assets.iterdir() if p.suffix == ".js")
+        r = client.get(f"/assets/{name}")
+        assert r.status_code == 200
+        assert "immutable" in r.headers.get("cache-control", "")
