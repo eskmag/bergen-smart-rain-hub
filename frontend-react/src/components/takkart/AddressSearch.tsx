@@ -95,8 +95,15 @@ async function overpassAttempt(endpoint: string, query: string): Promise<Overpas
       body: `data=${encodeURIComponent(query)}`,
     })
     if (res.ok) return { ok: true, data: await res.json() as { elements: OverpassElement[] } }
-    // 5xx and 429 mean the server is loaded, not that the query is wrong.
-    return { ok: false, retryable: res.status >= 500 || res.status === 429, status: res.status }
+    // 429 and 406 are the server explicitly telling us to back off — the OSM
+    // wiki asks for a 30s pause, which is not something a UI can sit through, so
+    // we stop asking this endpoint instead of hammering it. 5xx is transient
+    // load and worth another go; other 4xx means our query is wrong.
+    return {
+      ok: false,
+      retryable: res.status >= 500 && res.status !== 501,
+      status: res.status,
+    }
   } catch {
     // Network failure, DNS, or a CORS rejection — indistinguishable from here.
     return { ok: false, retryable: true, status: 0 }
