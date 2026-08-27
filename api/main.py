@@ -44,6 +44,26 @@ if FRONTEND_DIST.exists():
     async def spa_fallback(request: Request, exc: StarletteHTTPException):
         # Unmatched /api/* paths stay JSON 404s; everything else (client-side
         # routes like /beregn) falls back to index.html so a hard refresh works.
-        if exc.status_code == 404 and not request.url.path.startswith("/api"):
+        #
+        # /assets/* is excluded deliberately: those names are content-hashed, so
+        # a miss means the caller is holding a stale index.html that references
+        # a bundle we no longer ship. Answering with index.html would hand the
+        # browser HTML where it expects JavaScript and take down the whole app
+        # with an opaque syntax error — a plain 404 fails honestly instead.
+        if exc.status_code == 404 and not request.url.path.startswith(("/api", "/assets")):
             return FileResponse(FRONTEND_DIST / "index.html")
         return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+    @app.middleware("http")
+    async def cache_control(request: Request, call_next):
+        # Vite fingerprints everything under /assets/, so those are safe to keep
+        # forever; index.html names them and must therefore always be revalidated,
+        # otherwise a heuristically cached copy keeps pointing at dead bundles.
+        response = await call_next(request)
+        if request.url.path.startswith("/api"):
+            return response
+        if response.status_code == 200 and request.url.path.startswith("/assets/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif response.headers.get("content-type", "").startswith("text/html"):
+            response.headers["Cache-Control"] = "no-cache"
+        return response

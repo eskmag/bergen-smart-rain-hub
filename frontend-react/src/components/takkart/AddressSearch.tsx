@@ -61,21 +61,68 @@ function buildPolygonFeature(coords: [number, number][]): Feature<Polygon> {
   return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [closed] } }
 }
 
+// overpass-api.de is a free community endpoint with no SLA. Measured from here,
+// roughly one request in three came back 504 under load — with no retry, that
+// surfaced as "roof lookup is broken" even though the service was merely busy.
+//
+// overpass.osm.ch is deliberately NOT in this list: it answers with CORS and
+// HTTP 200, but serves a Switzerland-only extract, so it returns zero buildings
+// for Bergen. That would read as "no roof at this address" rather than an
+// outage — a wrong answer is worse than a slow one.
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+]
+
+const RETRY_DELAYS_MS = [700, 1800]
+
+type OverpassAttempt =
+  | { ok: true; data: { elements: OverpassElement[] } }
+  | { ok: false; retryable: boolean; status: number }
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function overpassAttempt(endpoint: string, query: string): Promise<OverpassAttempt> {
+  try {
+    // No User-Agent header here: browsers refuse to let scripts override it, and
+    // naming it only lifts the request out of the CORS-safelist into a needless
+    // preflight round-trip.
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `data=${encodeURIComponent(query)}`,
+    })
+    if (res.ok) return { ok: true, data: await res.json() as { elements: OverpassElement[] } }
+    // 5xx and 429 mean the server is loaded, not that the query is wrong.
+    return { ok: false, retryable: res.status >= 500 || res.status === 429, status: res.status }
+  } catch {
+    // Network failure, DNS, or a CORS rejection — indistinguishable from here.
+    return { ok: false, retryable: true, status: 0 }
+  }
+}
+
+async function overpassQuery(query: string): Promise<{ elements: OverpassElement[] }> {
+  let lastStatus = 0
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+      if (attempt > 0) await sleep(RETRY_DELAYS_MS[attempt - 1])
+      const result = await overpassAttempt(endpoint, query)
+      if (result.ok) return result.data
+      lastStatus = result.status
+      if (!result.retryable) break
+    }
+  }
+  throw new Error(`Overpass utilgjengelig (siste status: ${lastStatus || 'nettverksfeil'})`)
+}
+
 async function fetchFootprint(
   lat: number,
   lon: number,
 ): Promise<Feature<Polygon> | null> {
   const query = `[out:json];(way(around:35,${lat},${lon})["building"];relation(around:35,${lat},${lon})["building"];);out geom;`
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'BergenSmartRainHub/1.0',
-    },
-    body: `data=${encodeURIComponent(query)}`,
-  })
-  if (!res.ok) throw new Error(`Overpass ${res.status}`)
-  const data = await res.json() as { elements: OverpassElement[] }
+  const data = await overpassQuery(query)
 
   const pt: [number, number] = [lon, lat]
   let best: Feature<Polygon> | null = null
@@ -164,7 +211,9 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
         setError('Fant ingen bygningsfotavtrykk i nærheten. Prøv å måle manuelt.')
       }
     } catch {
-      setError('Kunne ikke hente bygningsdata. Prøv igjen eller mål manuelt.')
+      // We have already retried across endpoints by this point, so this is a
+      // real outage rather than a blip worth another immediate click.
+      setError('Bygningsdata er utilgjengelig akkurat nå. Prøv igjen om litt, eller mål taket manuelt.')
     } finally {
       setLoading(false)
     }
