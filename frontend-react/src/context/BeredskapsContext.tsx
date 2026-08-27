@@ -1,8 +1,9 @@
-import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { createContext, useContext, useState, useMemo, type ReactNode } from 'react'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import area from '@turf/area'
 import type { Feature, Polygon } from 'geojson'
 import { api } from '../api/client'
+import { useDebouncedValue } from '../lib/useDebouncedValue'
 import type { BeredskapsResponse, ScaleSchema } from '../api/client'
 
 export type RoofSource = 'preset' | 'map'
@@ -39,6 +40,8 @@ interface BeredskapsState {
   scale: string
   simResult: BeredskapsResponse | undefined
   isSimPending: boolean
+  /** Showing the previous result while a newer one is in flight. */
+  isStale: boolean
   annualLiters: number
 }
 
@@ -119,27 +122,34 @@ export function BeredskapsProvider({
     }
   }
 
-  const simMutation = useMutation({ mutationFn: api.simulateBeredskap })
-
-  useEffect(() => {
-    const buildings = Array.from({ length: numBuildings }, (_, i) => ({
+  // The inputs are high-frequency (199-step tank slider, rapid stepper clicks),
+  // so debounce the whole parameter set and let TanStack Query own the request.
+  // Beyond collapsing a burst into one call, keying the query on the parameters
+  // means revisiting a previous value is served from cache, and responses from
+  // superseded requests are discarded instead of racing each other onto screen.
+  const simParams = useMemo(() => ({
+    buildings: Array.from({ length: numBuildings }, (_, i) => ({
       name: `Bygg ${i + 1}`,
       roof_area_m2: roofPerBuilding,
       height_m: heightM,
-    }))
-    simMutation.mutate({
-      buildings,
-      tank_liters: tankLiters,
-      population,
-      efficiency: efficiency / 100,
-      usage_level: usageLevel,
-      climate_scenario: scenario,
-      station,
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roofPerBuilding, numBuildings, population, tankLiters, efficiency, usageLevel, scenario, heightM, station])
+    })),
+    tank_liters: tankLiters,
+    population,
+    efficiency: efficiency / 100,
+    usage_level: usageLevel,
+    climate_scenario: scenario,
+    station,
+  }), [roofPerBuilding, numBuildings, population, tankLiters, efficiency, usageLevel, scenario, heightM, station])
 
-  const simResult = simMutation.data
+  const debouncedParams = useDebouncedValue(simParams, 300)
+
+  const simQuery = useQuery({
+    queryKey: ['simulate', debouncedParams],
+    queryFn: () => api.simulateBeredskap(debouncedParams),
+    placeholderData: keepPreviousData,
+  })
+
+  const simResult = simQuery.data
 
   const annualLiters = useMemo(
     () => (simResult?.summary['total_collected_liters'] ?? 0) as number,
@@ -163,7 +173,8 @@ export function BeredskapsProvider({
       polygon: polygonState, setPolygon,
       scale,
       simResult,
-      isSimPending: simMutation.isPending,
+      isSimPending: simQuery.isFetching,
+      isStale: simQuery.isPlaceholderData || simParams !== debouncedParams,
       annualLiters,
     }}>
       {children}

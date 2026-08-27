@@ -18,6 +18,25 @@ interface OverpassElement {
   members?: { type: string; geometry?: { lat: number; lon: number }[] }[]
 }
 
+// Geonorge's `sok` matches whole words, not prefixes: "Torgall" returns 0 hits
+// while "Torgallmenningen" returns 18. Since we search on every keystroke, the
+// dropdown would stay empty until the user typed a complete street name — so
+// append a wildcard to the last token ("Torgall" -> "Torgall*", "Torgall 1" ->
+// "Torgall* 1", leaving the house number intact).
+//
+// Note: Geonorge does not transliterate input, so "Nygardsgaten" still finds
+// nothing for "Nygårdsgaten" — the user has to type æ/ø/å.
+function wildcardQuery(raw: string): string {
+  const tokens = raw.trim().split(/\s+/)
+  if (tokens.length === 0) return raw.trim()
+  const streetEnd = tokens.length > 1 && /^\d/.test(tokens[tokens.length - 1])
+    ? tokens.length - 2
+    : tokens.length - 1
+  const street = tokens[streetEnd]
+  if (street && !street.endsWith('*')) tokens[streetEnd] = `${street}*`
+  return tokens.join(' ')
+}
+
 function pointInPolygon(pt: [number, number], ring: [number, number][]): boolean {
   let inside = false
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
@@ -86,6 +105,7 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
   const [suggestions, setSuggestions] = useState<GeonorgeAddress[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [searchFailed, setSearchFailed] = useState(false)
   const [open, setOpen] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -93,20 +113,27 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
-      if (query.length < 2) {
+      if (query.trim().length < 2) {
         setSuggestions([])
+        setSearchFailed(false)
         setOpen(false)
         return
       }
       try {
-        const url = `https://ws.geonorge.no/adresser/v1/sok?sok=${encodeURIComponent(query)}&kommunenummer=4601&treffPerSide=6&asciiKompatibel=true`
+        const sok = wildcardQuery(query)
+        const url = `https://ws.geonorge.no/adresser/v1/sok?sok=${encodeURIComponent(sok)}&kommunenummer=4601&treffPerSide=6&asciiKompatibel=true`
         const res = await fetch(url)
-        if (!res.ok) return
+        if (!res.ok) throw new Error(`Geonorge ${res.status}`)
         const data = await res.json() as { adresser: GeonorgeAddress[] }
         setSuggestions(data.adresser ?? [])
+        setSearchFailed(false)
         setOpen(true)
       } catch {
-        // ignore transient errors
+        // Surface the failure — silently returning made a broken search look
+        // identical to "no such address".
+        setSuggestions([])
+        setSearchFailed(true)
+        setOpen(true)
       }
     }, 300)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
@@ -160,6 +187,15 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
         />
         {loading && <div className="t-address-spinner" />}
       </div>
+      {open && suggestions.length === 0 && (
+        <div className="t-address-dropdown">
+          <p className="t-address-empty">
+            {searchFailed
+              ? 'Adressesøket er utilgjengelig akkurat nå. Prøv igjen, eller mål taket manuelt.'
+              : 'Ingen treff i Bergen. Husk æ/ø/å i gatenavnet.'}
+          </p>
+        </div>
+      )}
       {open && suggestions.length > 0 && (
         <ul className="t-address-dropdown">
           {suggestions.map((s, i) => (

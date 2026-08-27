@@ -477,6 +477,18 @@
   animation: k-fadeUp 0.4s ease both;
 }
 
+/* Shown while a newer result is in flight — the previous numbers stay on
+   screen (keepPreviousData) rather than blanking, so this flags that they
+   are about to change. */
+.k-rh-updating {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 0.35rem;
+}
+
 .k-rh-verdict {
   font-family: var(--font-mono);
   font-size: 11px;
