@@ -12,7 +12,6 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from api.routers import (
     config, observations, simulate, costs, treatment, bydel, energy, validation, admin,
-    roof,
 )
 
 app = FastAPI(title="Bergen Smart Rain Hub API", version="1.0.0")
@@ -33,7 +32,6 @@ app.include_router(bydel.router, prefix="/api")
 app.include_router(energy.router, prefix="/api")
 app.include_router(validation.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
-app.include_router(roof.router, prefix="/api")
 
 FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend-react" / "dist"
 

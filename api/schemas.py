@@ -263,12 +263,3 @@ class ValidationResponse(BaseModel):
     case: ValidationCase
     tiers: list[TankTier]
 
-
-# ── Roof footprint (OSM building outline) ────────────────────────────────────
-
-class RoofFootprintResponse(BaseModel):
-    found: bool
-    # GeoJSON Polygon geometry, or null when OSM has no building at the point.
-    geometry: dict | None = None
-    source: str = "openstreetmap"
-    attribution: str = "© OpenStreetMap-bidragsytere"

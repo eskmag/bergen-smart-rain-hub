@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import type { Feature, Polygon } from 'geojson'
-import { api } from '../../api/client'
 import '../../takkart.css'
 
 interface AddressSearchProps {
-  onPolygon: (feature: Feature<Polygon> | null) => void
   onFlyTo: (point: [number, number] | null) => void
 }
 
@@ -32,31 +29,9 @@ function wildcardQuery(raw: string): string {
   return tokens.join(' ')
 }
 
-async function fetchFootprint(
-  lat: number,
-  lon: number,
-): Promise<Feature<Polygon> | null> {
-  // Proxied through our own backend on purpose. Overpass fronts its API with
-  // Apache, which returns a deterministic 406 for requests carrying a deployed
-  // site's Referer — measured 4/4 from the production domain and never once
-  // from localhost, which is exactly why this worked in dev and failed in
-  // production. OSM's policy also wants a User-Agent identifying the app, and a
-  // browser will not let a script set one. The backend has neither problem, and
-  // caches on top.
-  const { geometry } = await api.roofFootprint(lat, lon)
-  if (!geometry) return null
-  return {
-    type: 'Feature',
-    properties: {},
-    geometry: geometry as unknown as Polygon,
-  }
-}
-
-export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps) {
+export default function AddressSearch({ onFlyTo }: AddressSearchProps) {
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<GeonorgeAddress[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [searchFailed, setSearchFailed] = useState(false)
   const [open, setOpen] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -101,27 +76,17 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
     return () => document.removeEventListener('mousedown', onClick)
   }, [])
 
-  async function selectAddress(addr: GeonorgeAddress) {
+  // Navigation only. Automatic footprint lookup used to live here, via
+  // Overpass, and it could not be made to work: Overpass answers 406 to any
+  // request carrying a deployed site's Referer, its per-IP rate limit is
+  // unusable from a shared cloud egress, and it blocks a developer's own
+  // address after modest use. Drawing the roof is the reliable path, so the
+  // search does what it can do dependably — puts the right roof on screen.
+  function selectAddress(addr: GeonorgeAddress) {
     setQuery(addr.adressetekst)
     setOpen(false)
-    setError(null)
     const { lat, lon } = addr.representasjonspunkt
     onFlyTo([lat, lon])
-    setLoading(true)
-    try {
-      const footprint = await fetchFootprint(lat, lon)
-      if (footprint) {
-        onPolygon(footprint)
-      } else {
-        setError('Fant ingen bygningsfotavtrykk i nærheten. Prøv å måle manuelt.')
-      }
-    } catch {
-      // We have already retried across endpoints by this point, so this is a
-      // real outage rather than a blip worth another immediate click.
-      setError('Bygningsdata er utilgjengelig akkurat nå. Prøv igjen om litt, eller mål taket manuelt.')
-    } finally {
-      setLoading(false)
-    }
   }
 
   return (
@@ -133,13 +98,12 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
         <input
           className="t-address-input"
           type="text"
-          placeholder="Søk adresse i Bergen…"
+          placeholder="Søk adresse for å finne taket…"
           value={query}
           onChange={e => setQuery(e.target.value)}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           autoComplete="off"
         />
-        {loading && <div className="t-address-spinner" />}
       </div>
       {open && suggestions.length === 0 && (
         <div className="t-address-dropdown">
@@ -168,11 +132,6 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
           ))}
         </ul>
       )}
-      {error && <p className="t-address-error">{error}</p>}
-      {/* Takflater kommer fra OpenStreetMap via /api/roof/footprint. FKB-Bygning
-          ville vært mer presist, men Geonorge har det som AccessIsRestricted:
-          gratis kun for Norge digitalt-parter, ellers kjøp, og uten spørrbart
-          API. Bergen kommune er selv Norge digitalt-part. */}
     </div>
   )
 }
