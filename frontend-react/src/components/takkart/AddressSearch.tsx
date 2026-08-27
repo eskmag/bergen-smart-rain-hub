@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import type { Feature, Polygon } from 'geojson'
-import { api } from '../../api/client'
 import '../../takkart.css'
 
 interface AddressSearchProps {
@@ -11,6 +10,12 @@ interface AddressSearchProps {
 interface GeonorgeAddress {
   adressetekst: string
   representasjonspunkt: { lat: number; lon: number }
+}
+
+interface OverpassElement {
+  type: 'way' | 'relation'
+  geometry?: { lat: number; lon: number }[]
+  members?: { type: string; geometry?: { lat: number; lon: number }[] }[]
 }
 
 // Geonorge's `sok` matches whole words, not prefixes: "Torgall" returns 0 hits
@@ -32,24 +37,67 @@ function wildcardQuery(raw: string): string {
   return tokens.join(' ')
 }
 
+function pointInPolygon(pt: [number, number], ring: [number, number][]): boolean {
+  let inside = false
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1]
+    const xj = ring[j][0], yj = ring[j][1]
+    if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) {
+      inside = !inside
+    }
+  }
+  return inside
+}
+
+function ringToCoords(geom: { lat: number; lon: number }[]): [number, number][] {
+  return geom.map(p => [p.lon, p.lat])
+}
+
+function buildPolygonFeature(coords: [number, number][]): Feature<Polygon> {
+  const closed = coords[0][0] === coords[coords.length - 1][0] &&
+    coords[0][1] === coords[coords.length - 1][1]
+      ? coords
+      : [...coords, coords[0]]
+  return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [closed] } }
+}
+
 async function fetchFootprint(
   lat: number,
   lon: number,
 ): Promise<Feature<Polygon> | null> {
-  // Proxied through our own backend on purpose. Overpass fronts its API with
-  // Apache, which returns a deterministic 406 for requests carrying a deployed
-  // site's Referer — measured 4/4 from the production domain and never once
-  // from localhost, which is exactly why this worked in dev and failed in
-  // production. OSM's policy also wants a User-Agent identifying the app, and a
-  // browser will not let a script set one. The backend has neither problem, and
-  // caches on top.
-  const { geometry } = await api.roofFootprint(lat, lon)
-  if (!geometry) return null
-  return {
-    type: 'Feature',
-    properties: {},
-    geometry: geometry as unknown as Polygon,
+  const query = `[out:json];(way(around:35,${lat},${lon})["building"];relation(around:35,${lat},${lon})["building"];);out geom;`
+  const res = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': 'BergenSmartRainHub/1.0',
+    },
+    body: `data=${encodeURIComponent(query)}`,
+  })
+  if (!res.ok) throw new Error(`Overpass ${res.status}`)
+  const data = await res.json() as { elements: OverpassElement[] }
+
+  const pt: [number, number] = [lon, lat]
+  let best: Feature<Polygon> | null = null
+
+  for (const el of data.elements) {
+    if (el.type === 'way' && el.geometry && el.geometry.length >= 3) {
+      const coords = ringToCoords(el.geometry)
+      const feature = buildPolygonFeature(coords)
+      if (pointInPolygon(pt, coords)) return feature
+      best = best ?? feature
+    }
+    if (el.type === 'relation' && el.members) {
+      const outer = el.members.find(m => m.type === 'way' && m.geometry)
+      if (outer?.geometry && outer.geometry.length >= 3) {
+        const coords = ringToCoords(outer.geometry)
+        const feature = buildPolygonFeature(coords)
+        if (pointInPolygon(pt, coords)) return feature
+        best = best ?? feature
+      }
+    }
   }
+  return best
 }
 
 export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps) {
@@ -116,9 +164,7 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
         setError('Fant ingen bygningsfotavtrykk i nærheten. Prøv å måle manuelt.')
       }
     } catch {
-      // We have already retried across endpoints by this point, so this is a
-      // real outage rather than a blip worth another immediate click.
-      setError('Bygningsdata er utilgjengelig akkurat nå. Prøv igjen om litt, eller mål taket manuelt.')
+      setError('Kunne ikke hente bygningsdata. Prøv igjen eller mål manuelt.')
     } finally {
       setLoading(false)
     }
@@ -169,10 +215,7 @@ export default function AddressSearch({ onPolygon, onFlyTo }: AddressSearchProps
         </ul>
       )}
       {error && <p className="t-address-error">{error}</p>}
-      {/* Takflater kommer fra OpenStreetMap via /api/roof/footprint. FKB-Bygning
-          ville vært mer presist, men Geonorge har det som AccessIsRestricted:
-          gratis kun for Norge digitalt-parter, ellers kjøp, og uten spørrbart
-          API. Bergen kommune er selv Norge digitalt-part. */}
+      {/* TODO (produksjon): Bytt Overpass mot Kartverket FKB-Bygning for offisielle takflater */}
     </div>
   )
 }
