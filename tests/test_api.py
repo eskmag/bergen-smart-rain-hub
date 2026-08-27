@@ -19,6 +19,7 @@ from backend.analysis import (
     TANK_RECOMMENDATION_DAYS,
     WATER_NEEDS,
 )
+from backend import buildings
 from backend.config import DEFAULT_STATION_ID
 from backend.database import init_db, store_observations
 from tests.test_backtest import requires_2018
@@ -460,3 +461,35 @@ class TestSpaFallback:
         r = client.get(f"/assets/{name}")
         assert r.status_code == 200
         assert "immutable" in r.headers.get("cache-control", "")
+
+
+class TestRoofFootprint:
+    def test_returns_geometry_when_osm_has_a_building(self, monkeypatch):
+        geom = {"type": "Polygon", "coordinates": [[[5.0, 60.0], [5.1, 60.0],
+                                                    [5.1, 60.1], [5.0, 60.0]]]}
+        monkeypatch.setattr("api.routers.roof.footprint_for", lambda lat, lon: geom)
+        r = client.get("/api/roof/footprint?lat=60.389&lon=5.326")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["found"] is True
+        assert body["geometry"] == geom
+        assert body["source"] == "openstreetmap"
+
+    def test_reports_a_miss_without_failing(self, monkeypatch):
+        monkeypatch.setattr("api.routers.roof.footprint_for", lambda lat, lon: None)
+        r = client.get("/api/roof/footprint?lat=60.389&lon=5.326")
+        assert r.status_code == 200
+        assert r.json()["found"] is False
+        assert r.json()["geometry"] is None
+
+    def test_upstream_outage_is_503_not_500(self, monkeypatch):
+        def boom(lat, lon):
+            raise buildings.FootprintUnavailable("nede")
+
+        monkeypatch.setattr("api.routers.roof.footprint_for", boom)
+        r = client.get("/api/roof/footprint?lat=60.389&lon=5.326")
+        assert r.status_code == 503
+
+    @pytest.mark.parametrize("qs", ["lat=91&lon=5", "lat=60&lon=200", "lat=60"])
+    def test_rejects_impossible_coordinates(self, qs):
+        assert client.get(f"/api/roof/footprint?{qs}").status_code == 422

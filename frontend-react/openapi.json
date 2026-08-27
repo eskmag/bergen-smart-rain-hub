@@ -344,6 +344,103 @@
           }
         }
       }
+    },
+    "/api/admin/refresh": {
+      "post": {
+        "summary": "Refresh Data",
+        "operationId": "refresh_data_api_admin_refresh_post",
+        "parameters": [
+          {
+            "name": "x-refresh-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Refresh-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roof/footprint": {
+      "get": {
+        "summary": "Get Roof Footprint",
+        "description": "Building outline at a coordinate, proxied from OSM.\n\nProxied rather than called from the browser: Overpass returns a\ndeterministic 406 for requests carrying a deployed site's Referer, and OSM's\npolicy wants an identifying User-Agent that a browser cannot set.",
+        "operationId": "get_roof_footprint_api_roof_footprint_get",
+        "parameters": [
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Lat"
+            }
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Lon"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoofFootprintResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1093,6 +1190,41 @@
           "precipitation_mm"
         ],
         "title": "Observation"
+      },
+      "RoofFootprintResponse": {
+        "properties": {
+          "found": {
+            "type": "boolean",
+            "title": "Found"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "openstreetmap"
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution",
+            "default": "© OpenStreetMap-bidragsytere"
+          }
+        },
+        "type": "object",
+        "required": [
+          "found"
+        ],
+        "title": "RoofFootprintResponse"
       },
       "RoofMaterial": {
         "properties": {
