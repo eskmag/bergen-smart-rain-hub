@@ -219,4 +219,8 @@ CLAUDE.md
 # image, so it has to exist in a fresh clone (see docs/deployment.md).
 data/*.db
 !data/rain.db
+# Stray database files anywhere else are never wanted — an incomplete OSM
+# extract got committed from _archive/ once because `git add -A` swept it up.
+_archive/**/*.db
+*.db.incomplete
 .DS_Store
