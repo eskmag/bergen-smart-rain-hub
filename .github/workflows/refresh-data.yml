@@ -10,12 +10,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Call refresh endpoint
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
         run: |
-          status=$(curl -s -o /tmp/refresh_response.json -w "%{http_code}" \
-            -X POST "${{ vars.APP_URL }}/api/admin/refresh" \
-            -H "X-Refresh-Token: ${{ secrets.REFRESH_TOKEN }}")
-          cat /tmp/refresh_response.json
-          if [ "$status" -ge 300 ]; then
-            echo "Refresh failed with HTTP $status"
+          set -uo pipefail
+
+          if [ -z "${APP_URL:-}" ]; then
+            echo "::error::Repo-variabelen APP_URL er ikke satt (Settings → Secrets and variables → Actions → Variables)."
+            exit 1
+          fi
+          if [ -z "${REFRESH_TOKEN:-}" ]; then
+            echo "::error::Repo-hemmeligheten REFRESH_TOKEN er ikke satt (Settings → Secrets and variables → Actions → Secrets)."
+            exit 1
+          fi
+
+          # Render free tier spinner ned etter 15 min inaktivitet — vekk tjenesten
+          # først, så selve refresh-kallet ikke bruker opp tiden sin på kaldstart.
+          echo "Vekker ${APP_URL} ..."
+          curl -sS -o /dev/null --max-time 120 --retry 3 --retry-all-errors \
+            --retry-delay 10 "${APP_URL}/api/config" \
+            || echo "Oppvarming feilet — prøver refresh likevel."
+
+          curl_exit=0
+          status=$(curl -sS -o /tmp/refresh_response.json -w "%{http_code}" \
+            --connect-timeout 30 --max-time 300 \
+            -X POST "${APP_URL}/api/admin/refresh" \
+            -H "X-Refresh-Token: ${REFRESH_TOKEN}") || curl_exit=$?
+
+          if [ "$curl_exit" -ne 0 ]; then
+            echo "::error::curl feilet med exit-kode ${curl_exit} (3 = ugyldig URL, 6 = DNS, 28 = timeout)."
+            exit 1
+          fi
+
+          echo "HTTP-status: ${status}"
+          cat /tmp/refresh_response.json; echo
+
+          if [ "${status:-000}" -ge 300 ]; then
+            echo "::error::Refresh feilet med HTTP ${status}."
             exit 1
           fi
