@@ -4,7 +4,7 @@ import { api } from '../../api/client'
 import { useBeredskap } from '../../context/BeredskapsContext'
 import { BUILDING_OPTIONS } from './buildingTypes'
 import RoofMapModal from './RoofMapModal'
-import { TANK_MIN, TANK_MAX, tankForDays } from '../../lib/rainwater'
+import { TANK_MIN, tankForDays, tankSliderMax } from '../../lib/rainwater'
 import type { Feature, Polygon } from 'geojson'
 
 function fmt(n: number) {
@@ -77,7 +77,8 @@ export default function InputPanel() {
     days,
   }))
 
-  const tankPct = ((tankLiters - TANK_MIN) / (TANK_MAX - TANK_MIN)) * 100
+  const tankMax = tankSliderMax(dailyNeed, Math.max(0, ...tankPresets.map(p => p.days)))
+  const tankPct = ((tankLiters - TANK_MIN) / (tankMax - TANK_MIN)) * 100
   const activePreset = tankPresets.find(p => tankForDays(dailyNeed, p.days) === tankLiters)
 
   return (
@@ -159,7 +160,7 @@ export default function InputPanel() {
           aria-label="Tankstørrelse i liter"
           type="range"
           min={TANK_MIN}
-          max={TANK_MAX}
+          max={tankMax}
           step={100}
           value={tankLiters}
           onChange={e => setTankLiters(Number(e.target.value))}
