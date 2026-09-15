@@ -208,6 +208,15 @@ html { scroll-behavior: smooth; }
   text-transform: uppercase;
 }
 
+/* One plain sentence under the landing figure (the /potensial hero keeps .l-hsm-label) */
+.l-hero-figure-text {
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0.5rem 0 0;
+  max-width: 34ch;
+}
+
 .l-hero-stat-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -229,34 +238,6 @@ html { scroll-behavior: smooth; }
 
 .l-hsg-label {
   font-size: 11px;
-  color: var(--color-text-muted);
-  margin-top: 3px;
-}
-
-/* ── Stats strip ──────────────────────────────────────── */
-
-.l-stats-strip {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-bottom: 1px solid var(--color-border);
-}
-
-.l-ss-item {
-  padding: 1.25rem 2rem;
-  border-right: 1px solid var(--color-border);
-}
-
-.l-ss-item:last-child { border-right: none; }
-
-.l-ss-num {
-  font-size: 19px;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  color: var(--color-text);
-}
-
-.l-ss-label {
-  font-size: 12px;
   color: var(--color-text-muted);
   margin-top: 3px;
 }
@@ -300,97 +281,6 @@ html { scroll-behavior: smooth; }
   line-height: 1.7;
   margin: 0 0 1rem;
 }
-
-.l-step-link {
-  font-size: 13px;
-  color: var(--color-primary);
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  text-decoration: none;
-  transition: gap 0.15s;
-}
-
-.l-step-link:hover { gap: 8px; }
-
-/* ── Tools ────────────────────────────────────────────── */
-
-.l-tools {
-  padding: 5rem 2.5rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.l-tools-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-}
-
-.l-tools-title {
-  font-size: 22px;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  color: var(--color-text);
-}
-
-.l-tools-meta {
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.l-tools-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.l-tool-cell {
-  padding: 1.75rem 1.5rem;
-  border-right: 1px solid var(--color-border);
-  transition: background 0.15s;
-}
-
-.l-tool-cell:last-child { border-right: none; }
-.l-tool-cell:hover { background: var(--color-surface); }
-
-.l-tool-index {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 300;
-  color: var(--color-text-muted);
-  letter-spacing: 0.08em;
-  margin-bottom: 1.25rem;
-}
-
-.l-tool-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--color-text);
-  margin: 0 0 0.6rem;
-  letter-spacing: -0.01em;
-}
-
-.l-tool-body {
-  font-size: 13px;
-  color: var(--color-text-muted);
-  line-height: 1.65;
-  margin: 0 0 1.25rem;
-}
-
-.l-tool-link {
-  font-size: 12px;
-  color: var(--color-primary);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  text-decoration: none;
-  transition: gap 0.15s;
-}
-
-.l-tool-link:hover { gap: 7px; }
 
 /* ── Data section ─────────────────────────────────────── */
 
@@ -477,6 +367,14 @@ html { scroll-behavior: smooth; }
   margin: 0;
 }
 
+.l-cta-secondary {
+  font-size: 14px;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.l-cta-secondary:hover { text-decoration: underline; }
+
 .l-cta-right {
   flex-shrink: 0;
   text-align: right;
@@ -540,4 +438,35 @@ html { scroll-behavior: smooth; }
 
 .l-footer-kjelder {
   padding: 0 2.5rem 1.5rem;
+}
+
+/* ── Narrow screens ───────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .l-hero,
+  .l-narrative-steps,
+  .l-data-section { grid-template-columns: minmax(0, 1fr); }
+  .l-cta-section { flex-direction: column; align-items: flex-start; }
+  .l-cta-right { text-align: left; }
+  .l-nav-links { display: none; }
+}
+
+@media (max-width: 640px) {
+  .l-nav,
+  .l-hero,
+  .l-narrative,
+  .l-data-section,
+  .l-cta-section,
+  .l-footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .l-footer-kjelder { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .l-hero { padding-top: 3rem; padding-bottom: 3rem; }
+  .l-hero-title { font-size: 32px; }
+  .l-hsm-num { font-size: 38px; }
+  .l-footer { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .l-hero,
+  .l-hero-right { animation: none; opacity: 1; transform: none; }
 }

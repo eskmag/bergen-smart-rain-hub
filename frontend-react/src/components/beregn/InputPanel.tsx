@@ -89,14 +89,9 @@ export default function InputPanel() {
 
   return (
     <div className="k-input-panel">
-      <p className="k-panel-eyebrow">Konfigurer beregningen</p>
-
       {/* Roof area — the source of truth */}
       <div className="k-input-section">
-        <div className="k-input-label">
-          Takareal
-          <span className="k-input-hint">— grunnlaget for hele beregningen</span>
-        </div>
+        <div className="k-input-label">Takareal</div>
 
         <div className="k-roof-tabs">
           {ROOF_SOURCES.map(s => (
@@ -168,6 +163,7 @@ export default function InputPanel() {
         </div>
         <input
           className="k-tank-range"
+          aria-label="Tankstørrelse i liter"
           type="range"
           min={TANK_MIN}
           max={TANK_MAX}
@@ -176,11 +172,6 @@ export default function InputPanel() {
           onChange={e => setTankLiters(Number(e.target.value))}
           style={{ background: `linear-gradient(to right, var(--k-blue) ${tankPct}%, var(--k-surface) ${tankPct}%)` }}
         />
-        <div className="k-slider-labels">
-          <span>{fmt(TANK_MIN)} L</span>
-          <span>25 000 L</span>
-          <span>{fmt(TANK_MAX)} L</span>
-        </div>
         <div className="k-tank-presets">
           {tankPresets.map(p => (
             <button
@@ -191,7 +182,6 @@ export default function InputPanel() {
               {p.label}{activePreset?.label === p.label ? ' ✓' : ''}
             </button>
           ))}
-          <span className={`k-tank-preset${!activePreset ? ' active' : ''}`}>Tilpasset</span>
         </div>
       </div>
 
@@ -199,7 +189,6 @@ export default function InputPanel() {
       <button className="k-advanced-toggle" onClick={() => setAdvancedOpen(v => !v)}>
         <div className="k-toggle-icon">{advancedOpen ? '−' : '+'}</div>
         Avanserte innstillinger
-        <span className="k-advanced-meta">effektivitet, forbruksnivå</span>
       </button>
 
       {advancedOpen && (

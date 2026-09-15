@@ -20,13 +20,16 @@ function verdictFor(daysTankEmpty: number) {
   return                          { text: 'Sårbar forsyning', dot: '#FCA5A5' }
 }
 
+// Answer first, details one click away: the hero, one plain sentence and the
+// chart are always visible; everything else sits in «Flere detaljer» and in
+// the full report (/rapport).
 export default function ResultPanel() {
   const navigate = useNavigate()
   const {
     buildingKey, roofSource,
     simResult, isSimPending, isStale,
     population, scale, annualLiters, usageLevel, roofMaterial, station, scenario,
-    roofPerBuilding, numBuildings, heightM,
+    roofPerBuilding, numBuildings, heightM, tankLiters,
   } = useBeredskap()
 
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config })
@@ -38,11 +41,19 @@ export default function ResultPanel() {
   })
   const costs = costsQuery.data
 
+  // Same query key as WaterQualityCard, so this is served from cache. An
+  // unsuitable roof is safety information and must not hide behind a toggle.
+  const { data: treatment } = useQuery({
+    queryKey: ['treatment', roofMaterial, scale],
+    queryFn: () => api.treatment(roofMaterial, scale),
+    enabled: Boolean(roofMaterial) && Boolean(scale),
+  })
+
   const totalRoofM2 = roofPerBuilding * numBuildings
   const roofDescriptor =
     roofSource === 'preset'
       ? BUILDING_OPTIONS.find(o => o.key === buildingKey)?.label.toLowerCase() ?? 'bygg'
-      : `${fmt(totalRoofM2)} m² tak (målt)`
+      : `${fmt(totalRoofM2)} m² tak`
 
   const stationLabel = config?.stations.find(s => s.id === station)?.label
 
@@ -52,14 +63,18 @@ export default function ResultPanel() {
 
   const waterNeeds = config.water_needs
   const dailyNeed = population * (waterNeeds[usageLevel] ?? waterNeeds['survival_total'])
-  const [minDays, recDays, robustDays] = config.defaults.tank_recommendation_days
+  const recDays = config.defaults.tank_recommendation_days[1]
+
+  // How long a full tank lasts with no rain at all — the concrete beredskap answer.
+  const tankDays = dailyNeed > 0 ? Math.floor(tankLiters / dailyNeed) : 0
+  // Rounded exactly like the «30 dager» tank preset in InputPanel, so picking
+  // that preset makes the recommendation go away.
+  const recommendedLiters = Math.min(100000, Math.max(500, Math.round((dailyNeed * recDays) / 500) * 500))
 
   const summary = simResult?.summary ?? {}
-  const supplyDays    = (summary['days_of_survival_supply'] ?? 0) as number
   const totalLiters   = (summary['total_collected_liters'] ?? 0) as number
   const daysTankEmpty = (summary['days_tank_empty'] ?? 0) as number
   const longestDry    = (summary['longest_dry_spell_days'] ?? 0) as number
-  const dailyAvg      = totalLiters / 365
 
   const verdict = verdictFor(daysTankEmpty)
   const loading = isSimPending && !simResult
@@ -69,11 +84,13 @@ export default function ResultPanel() {
       {/* Hero */}
       <div className="k-result-hero">
         <div className="k-rh-verdict">
-          Beredskapsforsyning · {fmt(population)} {population === 1 ? 'person' : 'personer'} · {roofDescriptor}
+          {fmt(population)} {population === 1 ? 'person' : 'personer'} · {roofDescriptor}
         </div>
         {!loading && isStale && <div className="k-rh-updating">Oppdaterer…</div>}
-        <div className="k-rh-number">{loading ? '—' : fmt(supplyDays)}</div>
-        <div className="k-rh-unit">dager med trygg vannforsyning</div>
+        <div className="k-rh-number">{fmt(tankDays)}</div>
+        <div className="k-rh-unit">
+          {tankDays === 1 ? 'dag' : 'dager'} med vann fra full tank, uten regn
+        </div>
         {!loading && (
           <div className="k-rh-badge">
             <div className="k-rh-badge-dot" style={{ background: verdict.dot }} />
@@ -82,59 +99,23 @@ export default function ResultPanel() {
         )}
       </div>
 
-      {/* Metrics */}
-      <div className="k-metrics-row">
-        <div className="k-metric-card">
-          <div className="k-mc-label">Takflate</div>
-          <div className="k-mc-val">{fmt(totalRoofM2)} <span className="k-mc-unit">m²</span></div>
-        </div>
-        <div className="k-metric-card">
-          <div className="k-mc-label">Årlig oppsamling</div>
-          <div className="k-mc-val">{loading ? '—' : fmt(totalLiters)} <span className="k-mc-unit">L</span></div>
-        </div>
-        <div className="k-metric-card">
-          <div className="k-mc-label">Daglig gjennomsnitt</div>
-          <div className="k-mc-val">{loading ? '—' : fmt(dailyAvg)} <span className="k-mc-unit">L/dag</span></div>
-        </div>
-        <div className="k-metric-card">
-          <div className="k-mc-label">Daglig behov</div>
-          <div className="k-mc-val">{fmt(dailyNeed)} <span className="k-mc-unit">L/dag</span></div>
-        </div>
-      </div>
-
-      <p className="k-who-note">
-        {waterNeeds['survival_total']} L/person/dag dekker drikke {waterNeeds['drinking']} ·
-        hygiene {waterNeeds['sanitation']} · matlaging {waterNeeds['cooking']} ·
-        medisin {waterNeeds['medical']} (WHO-minimum)
-      </p>
-
-      {/* Tank recommendation */}
-      <div className="k-tank-rec">
-        <div>
-          <div className="k-tr-eyebrow">Anbefalt tankstørrelse</div>
-          <div className="k-tr-val">{fmt(dailyNeed * recDays)} L</div>
-          <div className="k-tr-sub">
-            Dekker {recDays} dager uten nedbør · lengste registrert: {fmt(longestDry)} d
-          </div>
-        </div>
-        <div className="k-tr-options">
-          <div className="k-tr-opt">Min: <strong>{fmt(dailyNeed * minDays)} L</strong> · {minDays} dager</div>
-          <div className="k-tr-opt">Anbefalt: <strong>{fmt(dailyNeed * recDays)} L</strong> · {recDays} dager</div>
-          <div className="k-tr-opt">Robust: <strong>{fmt(dailyNeed * robustDays)} L</strong> · {robustDays} dager</div>
-        </div>
-      </div>
-
-      {/* Cost line */}
-      {costs && (
-        <div className="k-cost-line">
-          <div className="k-cl-label">Anslått kostnad</div>
-          <div className="k-cl-val">
-            ~{fmt(costs.capital)} kr i investering · ~{fmt(costs.annual_op)} kr/år i drift
-          </div>
-        </div>
+      {/* The answer in one sentence */}
+      {!loading && (
+        <p className="k-summary">
+          {daysTankEmpty === 0
+            ? 'Regnet fyller tanken opp igjen, og den gikk aldri tom i løpet av året. '
+            : `Tanken var tom ${fmt(daysTankEmpty)} ${daysTankEmpty === 1 ? 'dag' : 'dager'} i løpet av året. `}
+          Den lengste perioden uten regn varte {fmt(longestDry)} dager.
+          {tankLiters < recommendedLiters && (
+            <> Vi anbefaler minst <strong>{fmt(recommendedLiters)} liter</strong>, nok til omtrent {recDays} dager.</>
+          )}
+        </p>
       )}
 
-      {/* Chart */}
+      {treatment && !treatment.potable && (
+        <p className="k-warning" role="alert">{treatment.note}</p>
+      )}
+
       <SimulationChart
         series={simResult?.simulation_series}
         loading={loading}
@@ -142,51 +123,62 @@ export default function ResultPanel() {
         stroke="var(--k-blue)"
       />
 
-      {/* Dry spells */}
-      <DrySpellsList
-        spells={simResult?.dry_spells}
-        loading={loading}
-        classPrefix="k"
-        labels={{
-          title: 'Sårbare perioder',
-          badge: n => `${n} tørkeperioder i år`,
-          days: n => `${n} dager`,
-          empty: 'Ingen lengre tørkeperioder funnet.',
-        }}
-      />
+      <details className="k-details">
+        <summary>Flere detaljer</summary>
+        <div className="k-details-body">
+          {!loading && (
+            <p className="k-details-line">
+              Taket samler om lag <strong>{fmt(totalLiters)} liter</strong> regnvann i året.
+            </p>
+          )}
 
-      {/* Water quality */}
-      <WaterQualityCard material={roofMaterial} scale={scale} classPrefix="k" />
+          {costs && (
+            <div className="k-cost-line">
+              <div className="k-cl-label">Anslått kostnad</div>
+              <div className="k-cl-val">
+                ~{fmt(costs.capital)} kr i investering · ~{fmt(costs.annual_op)} kr/år i drift
+              </div>
+            </div>
+          )}
 
-      {/* Energy — a talking point at scale; hidden for household (Phase 5 precedent) */}
-      {scale !== 'household' && (
-        <EnergyCard
-          totalRoofM2={roofPerBuilding * numBuildings}
-          heightM={heightM}
-          classPrefix="k"
-        />
-      )}
+          <DrySpellsList
+            spells={simResult?.dry_spells}
+            loading={loading}
+            classPrefix="k"
+            labels={{
+              title: 'Sårbare perioder',
+              badge: n => `${n} tørkeperioder i år`,
+              days: n => `${n} dager`,
+              empty: 'Ingen lengre tørkeperioder funnet.',
+            }}
+          />
 
-      {/* Historical year outcomes */}
-      {simResult?.yearly_outcomes && (
-        <YearlyOutcomes
-          outcomes={simResult.yearly_outcomes}
-          classPrefix="k"
-          stationLabel={stationLabel}
-        />
-      )}
+          <WaterQualityCard material={roofMaterial} scale={scale} classPrefix="k" />
 
-      {/* Report */}
+          {simResult?.yearly_outcomes && (
+            <YearlyOutcomes
+              outcomes={simResult.yearly_outcomes}
+              classPrefix="k"
+              stationLabel={stationLabel}
+            />
+          )}
+
+          {/* Energy — a talking point at scale; hidden for household (Phase 5 precedent) */}
+          {scale !== 'household' && (
+            <EnergyCard totalRoofM2={totalRoofM2} heightM={heightM} classPrefix="k" />
+          )}
+        </div>
+      </details>
+
       <button
         className="k-roof-map-btn"
         style={{ alignSelf: 'flex-start' }}
         onClick={() => navigate('/rapport')}
         disabled={!simResult}
       >
-        Generer rapport
+        Lag rapport
       </button>
 
-      {/* Kjelder */}
       <div className="k-data-note">
         <Kjelder
           ids={

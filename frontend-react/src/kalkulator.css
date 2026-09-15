@@ -61,22 +61,6 @@
 
 .k-nav-title { font-size: 14px; font-weight: 500; color: var(--k-ink); }
 
-.k-nav-steps { display: flex; align-items: center; gap: 6px; }
-
-.k-step-pill {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 300;
-  padding: 4px 10px;
-  border-radius: 20px;
-  color: var(--k-muted);
-  background: var(--k-surface);
-  transition: all 0.2s;
-}
-.k-step-pill.active { background: var(--k-blue); color: white; }
-.k-step-pill.done { background: var(--k-green-light); color: var(--k-green-dark); }
-.k-step-sep { font-size: 11px; color: var(--k-border); }
-
 /* ── LAYOUT ───────────────────────────────────────── */
 .k-layout {
   display: grid;
@@ -93,16 +77,6 @@
   overflow-y: auto;
 }
 
-.k-panel-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 300;
-  color: var(--k-muted);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  margin-bottom: 1.75rem;
-}
-
 .k-input-section { margin-bottom: 2rem; }
 
 .k-input-label {
@@ -114,8 +88,6 @@
   align-items: center;
   gap: 6px;
 }
-
-.k-input-hint { font-size: 12px; color: var(--k-muted); font-weight: 400; }
 
 .k-building-grid {
   display: grid;
@@ -381,15 +353,6 @@
   cursor: pointer;
 }
 
-.k-slider-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--k-muted);
-  font-family: var(--font-mono);
-  font-weight: 300;
-}
-
 .k-tank-presets { display: flex; gap: 6px; margin-top: 0.75rem; flex-wrap: wrap; }
 
 .k-tank-preset {
@@ -439,8 +402,6 @@
   font-size: 12px;
   color: var(--k-muted);
 }
-
-.k-advanced-meta { font-size: 11px; margin-left: auto; font-family: var(--font-mono); font-weight: 300; }
 
 .k-advanced-body { padding: 0.5rem 0 0.75rem; }
 .k-adv-row { margin-bottom: 1rem; }
@@ -513,51 +474,6 @@
 }
 .k-rh-badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #6EE7B7; }
 
-.k-metrics-row {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0,1fr));
-  gap: 10px;
-  animation: k-fadeUp 0.4s 0.08s ease both;
-}
-
-.k-metric-card {
-  background: var(--k-white);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  border: 1px solid var(--k-border);
-}
-.k-mc-label { font-size: 11px; color: var(--k-muted); margin-bottom: 6px; }
-.k-mc-val { font-size: 18px; font-weight: 400; letter-spacing: -0.02em; color: var(--k-ink); }
-.k-mc-unit { font-size: 12px; color: var(--k-muted); }
-
-.k-tank-rec {
-  background: var(--k-green-light);
-  border-radius: var(--radius-md);
-  padding: 1rem 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  animation: k-fadeUp 0.4s 0.12s ease both;
-}
-.k-tr-eyebrow {
-  font-size: 11px; color: var(--k-green-dark); margin-bottom: 3px;
-  font-family: var(--font-mono); font-weight: 300; letter-spacing: 0.07em; text-transform: uppercase;
-}
-.k-tr-val { font-size: 22px; font-weight: 400; letter-spacing: -0.02em; color: var(--k-green-dark); }
-.k-tr-sub { font-size: 12px; color: var(--k-green); margin-top: 2px; }
-.k-tr-options { display: flex; flex-direction: column; gap: 6px; text-align: right; flex-shrink: 0; }
-.k-tr-opt { font-size: 12px; color: var(--k-muted); }
-.k-tr-opt strong { color: var(--k-green-dark); font-weight: 500; }
-
-/* WHO breakdown caption under the metrics row */
-.k-who-note {
-  font-size: 11px;
-  color: var(--k-muted);
-  margin: -0.5rem 0 0;
-  line-height: 1.5;
-}
-
 /* Simple cost line */
 .k-cost-line {
   background: var(--k-white);
@@ -576,6 +492,50 @@
   margin-bottom: 3px;
 }
 .k-cl-val { font-size: 15px; font-weight: 400; color: var(--k-ink); }
+
+/* The answer in one plain sentence, under the hero */
+.k-summary {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--k-ink);
+  max-width: 60ch;
+}
+.k-summary strong { font-weight: 500; }
+
+/* Unsuitable roof — safety information, always visible */
+.k-warning {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--k-red-light);
+  color: var(--k-red);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* «Flere detaljer» — everything beyond the answer */
+.k-details {
+  border-top: 1px solid var(--k-border);
+  border-bottom: 1px solid var(--k-border);
+}
+.k-details > summary {
+  cursor: pointer;
+  padding: 0.85rem 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--k-blue);
+}
+.k-details > summary:hover { color: var(--k-blue-dark); }
+.k-details > summary:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 2px; border-radius: 4px; }
+.k-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+}
+.k-details-line { margin: 0; font-size: 14px; color: var(--k-ink); }
+.k-details-line strong { font-weight: 500; }
 
 .k-chart-card {
   background: var(--k-white);
@@ -634,3 +594,15 @@
 .k-note-link:hover { text-decoration: underline; }
 
 .k-placeholder { color: var(--k-muted); opacity: 0.6; }
+
+@media (max-width: 900px) {
+  .k-layout { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .k-input-panel { border-right: none; border-bottom: 1px solid var(--k-border); }
+  .k-input-panel,
+  .k-result-panel { padding: 1.75rem 1.25rem; }
+  .k-nav { padding: 0 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .k-shell * { animation: none !important; }
+}
