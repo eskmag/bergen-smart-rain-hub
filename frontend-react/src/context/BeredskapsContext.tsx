@@ -4,6 +4,7 @@ import area from '@turf/area'
 import type { Feature, Polygon } from 'geojson'
 import { api } from '../api/client'
 import { useDebouncedValue } from '../lib/useDebouncedValue'
+import { tankForDays } from '../lib/rainwater'
 import type { BeredskapsResponse, ScaleSchema } from '../api/client'
 
 export type RoofSource = 'preset' | 'map'
@@ -79,7 +80,6 @@ interface BeredskapsProviderProps {
   initialRoofArea?: number
   initialNumBuildings?: number
   initialPopulation?: number
-  initialTankLiters?: number
   initialHeightM?: number
 }
 
@@ -88,18 +88,18 @@ export function BeredskapsProvider({
   initialRoofArea = 120,
   initialNumBuildings = 1,
   initialPopulation = 4,
-  initialTankLiters = 5000,
   // matches the 'enebolig' preset (BUILDING_PRESETS in backend/analysis.py);
   // replaced as soon as the user picks a building type
   initialHeightM = 6,
 }: BeredskapsProviderProps) {
   const [buildingKey, setBuildingKey] = useState('enebolig')
-  const [roofPerBuilding, setRoofPerBuilding] = useState(initialRoofArea)
-  const [numBuildings, setNumBuildings] = useState(initialNumBuildings)
-  const [population, setPopulation] = useState(initialPopulation)
-  const [tankLiters, setTankLiters] = useState(initialTankLiters)
+  const [roofPerBuilding, setRoofPerBuildingState] = useState(initialRoofArea)
+  const [numBuildings, setNumBuildingsState] = useState(initialNumBuildings)
+  const [population, setPopulationState] = useState(initialPopulation)
+  // A manual tank choice (slider or preset); null means «use the 30-day size».
+  const [tankOverride, setTankOverride] = useState<number | null>(null)
   const [efficiency, setEfficiency] = useState(85)
-  const [usageLevel, setUsageLevel] = useState('survival_total')
+  const [usageLevel, setUsageLevelState] = useState('survival_total')
   const [scenario, setScenario] = useState('historical')
   const [roofMaterial, setRoofMaterial] = useState('takstein')
   const [station, setStation] = useState('SN50540')
@@ -113,6 +113,37 @@ export function BeredskapsProvider({
     [population, config],
   )
 
+  // The tank defaults to the 30-day size (middle tier of
+  // defaults.tank_recommendation_days) and follows population and usage level.
+  // A manual choice holds until the building, roof, people or usage level
+  // changes, which clears it. Derived rather than stored, so it is always
+  // computed from current values, never from a stale closure.
+  const perPersonDaily =
+    config?.water_needs[usageLevel] ?? (usageLevel === 'normal_usage' ? 150 : 13)
+  const defaultTankDays = config?.defaults.tank_recommendation_days[1] ?? 30
+  const tankLiters = tankOverride ?? tankForDays(population * perPersonDaily, defaultTankDays)
+  const setTankLiters = (v: number) => setTankOverride(v)
+
+  function setPopulation(v: number) {
+    setPopulationState(v)
+    setTankOverride(null)
+  }
+
+  function setUsageLevel(v: string) {
+    setUsageLevelState(v)
+    setTankOverride(null)
+  }
+
+  function setRoofPerBuilding(v: number) {
+    setRoofPerBuildingState(v)
+    setTankOverride(null)
+  }
+
+  function setNumBuildings(v: number) {
+    setNumBuildingsState(v)
+    setTankOverride(null)
+  }
+
   // Setting a polygon (from the map) makes it the roof-area source of truth.
   function setPolygon(feature: Feature<Polygon> | null) {
     setPolygonState(feature)
@@ -122,7 +153,7 @@ export function BeredskapsProvider({
     }
   }
 
-  // The inputs are high-frequency (199-step tank slider, rapid stepper clicks),
+  // The inputs are high-frequency (996-step tank slider, rapid stepper clicks),
   // so debounce the whole parameter set and let TanStack Query own the request.
   // Beyond collapsing a burst into one call, keying the query on the parameters
   // means revisiting a previous value is served from cache, and responses from

@@ -43,3 +43,14 @@ export function tankRecommendations(
     liters: Math.ceil((dailyNeed * d) / 100) * 100,
   }))
 }
+
+// Tank slider bounds — pure UI constraints, not domain values
+export const TANK_MIN = 500
+export const TANK_MAX = 100_000
+
+// Tank size that lasts `days` without rain. Rounded *up* to the nearest 100 L
+// so a preset always covers at least the number of days it is named after.
+export function tankForDays(dailyNeed: number, days: number): number {
+  const liters = Math.ceil((dailyNeed * days) / 100) * 100
+  return Math.min(TANK_MAX, Math.max(TANK_MIN, liters))
+}
