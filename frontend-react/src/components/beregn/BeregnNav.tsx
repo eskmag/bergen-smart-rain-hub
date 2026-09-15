@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 
-// Calculator-specific top nav: back-to-home link + title + decorative
-// step pills. Pills are static visual indicators, not a wizard flow.
+// Calculator-specific top nav: back-to-home link + title.
 export default function BeregnNav() {
   return (
     <nav className="k-nav">
@@ -14,13 +13,6 @@ export default function BeregnNav() {
         </Link>
         <div className="k-nav-divider" />
         <span className="k-nav-title">Beredskapskalkulator</span>
-      </div>
-      <div className="k-nav-steps">
-        <span className="k-step-pill done">01 Bygningstype</span>
-        <span className="k-step-sep">·</span>
-        <span className="k-step-pill active">02 Personer</span>
-        <span className="k-step-sep">·</span>
-        <span className="k-step-pill">03 Tank</span>
       </div>
     </nav>
   )

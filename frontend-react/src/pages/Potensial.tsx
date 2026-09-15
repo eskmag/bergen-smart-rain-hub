@@ -299,7 +299,6 @@ export default function Potensial() {
         </span>
         <ul className="l-footer-links">
           <li><Link to="/">Forsiden</Link></li>
-          <li><a href="/#data">Datakilde</a></li>
         </ul>
       </footer>
       <div className="l-footer-kjelder">

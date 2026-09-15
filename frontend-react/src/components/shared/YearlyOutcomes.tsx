@@ -61,7 +61,7 @@ export function YearlyOutcomes({ outcomes, classPrefix: p, stationLabel }: Yearl
             >
               <td style={{ padding: '0.35rem 0', color: 'var(--text-muted, #6b7280)' }}>{label}</td>
               <td style={{ textAlign: 'right', padding: '0.35rem 0' }}>{row.year}</td>
-              <td style={{ textAlign: 'right', padding: '0.35rem 0' }}>{fmt(row.min_tank_pct * 100, 1)}</td>
+              <td style={{ textAlign: 'right', padding: '0.35rem 0' }}>{fmt(row.min_tank_pct, 1)}</td>
               <td style={{ textAlign: 'right', padding: '0.35rem 0' }}>{row.longest_dry_spell_days}</td>
               <td style={{ textAlign: 'right', padding: '0.35rem 0' }}>{row.days_tank_empty}</td>
             </tr>
