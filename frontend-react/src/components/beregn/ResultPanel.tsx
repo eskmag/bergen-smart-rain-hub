@@ -79,8 +79,6 @@ export default function ResultPanel() {
 
   const summary = simResult?.summary ?? {}
   const totalLiters   = (summary['total_collected_liters'] ?? 0) as number
-  const storedLiters  = (summary['stored_liters'] ?? 0) as number
-  const overflowLiters = (summary['overflow_liters'] ?? 0) as number
   const daysTankEmpty = (summary['days_tank_empty'] ?? 0) as number
   const longestDry    = (summary['longest_dry_spell_days'] ?? 0) as number
 
@@ -107,14 +105,7 @@ export default function ResultPanel() {
         )}
         {!loading && (
           <div className="k-rh-collect">
-            {overflowLiters < 100 ? (
-              <>Tanken din fanger alle <strong>{fmtVolume(totalLiters)} liter</strong> taket gir i året.</>
-            ) : (
-              <>
-                Taket gir <strong>{fmtVolume(totalLiters)} liter</strong> i året.
-                Tanken din fanger <strong>{fmtVolume(storedLiters)} liter</strong> – resten renner over.
-              </>
-            )}
+            Taket kan fange <strong>{fmtVolume(totalLiters)} liter</strong> i året.
           </div>
         )}
       </div>
