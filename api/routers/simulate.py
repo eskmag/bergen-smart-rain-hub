@@ -41,7 +41,10 @@ def simulate_beredskap(req: BeredskapsRequest):
         for b in req.buildings
     ]
 
-    summary_raw = emergency_summary(df_scenario, buildings, req.tank_liters, req.population, req.efficiency)
+    summary_raw = emergency_summary(
+        df_scenario, buildings, req.tank_liters, req.population, req.efficiency,
+        usage_level=req.usage_level,
+    )
 
     # Convert non-serialisable types
     summary = {

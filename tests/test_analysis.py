@@ -7,6 +7,7 @@ from backend.analysis import (
     water_collected,
     emergency_supply_days,
     storage_simulation,
+    emergency_summary,
     find_dry_spells,
     recommend_tank_size,
     monthly_summary,
@@ -103,10 +104,64 @@ class TestStorageSimulation:
         df = make_df([10])
         buildings = [Building("Test", roof_area_m2=100)]
         sim = storage_simulation(df, buildings, 1000, 1)
-        required_cols = {"date", "precipitation_mm", "inflow_liters", "consumption_liters",
-                         "tank_level_liters", "tank_pct", "days_remaining",
-                         "available_liters", "available_pct"}
+        required_cols = {"date", "precipitation_mm", "inflow_liters", "stored_liters",
+                         "consumption_liters", "tank_level_liters", "tank_pct",
+                         "days_remaining", "available_liters", "available_pct"}
         assert required_cols.issubset(set(sim.columns))
+
+    def test_stored_limited_by_free_space(self):
+        # 1000 L tank starts at 500 L; no people, so only 500 L more fits
+        df = make_df([100])
+        buildings = [Building("Test", roof_area_m2=100)]
+        sim = storage_simulation(df, buildings, 1000, 0)
+        assert sim["inflow_liters"].iloc[0] > 500
+        assert sim["stored_liters"].iloc[0] == pytest.approx(500.0)
+
+    def test_stored_equals_inflow_when_it_fits(self):
+        df = make_df([1])
+        buildings = [Building("Test", roof_area_m2=10)]
+        sim = storage_simulation(df, buildings, 10000, 0)
+        assert sim["stored_liters"].iloc[0] == pytest.approx(sim["inflow_liters"].iloc[0])
+
+    def test_consumption_frees_space_for_next_day(self):
+        # Day 1 fills the tank; consumption drains 13 L, which day 2 can refill
+        df = make_df([100, 100])
+        buildings = [Building("Test", roof_area_m2=100)]
+        sim = storage_simulation(df, buildings, 1000, 1)
+        assert sim["stored_liters"].iloc[1] == pytest.approx(WATER_NEEDS["survival_total"])
+
+
+# --- emergency_summary ---
+
+class TestEmergencySummary:
+    def test_stored_plus_overflow_equals_collected(self):
+        df = make_df([20, 0, 5, 40, 0, 0, 10])
+        buildings = [Building("Test", roof_area_m2=120)]
+        summary = emergency_summary(df, buildings, 800, 4)
+        assert summary["stored_liters"] <= summary["total_collected_liters"]
+        assert summary["stored_liters"] + summary["overflow_liters"] == pytest.approx(
+            summary["total_collected_liters"]
+        )
+
+    def test_small_tank_overflows(self):
+        df = make_df([50, 50, 50])
+        buildings = [Building("Test", roof_area_m2=100)]
+        summary = emergency_summary(df, buildings, 500, 1)
+        assert summary["overflow_liters"] > 0
+
+    def test_bigger_tank_stores_more(self):
+        df = make_df([50, 50, 50])
+        buildings = [Building("Test", roof_area_m2=100)]
+        small = emergency_summary(df, buildings, 500, 1)
+        large = emergency_summary(df, buildings, 20000, 1)
+        assert large["stored_liters"] > small["stored_liters"]
+
+    def test_usage_level_drives_tank_empty_days(self):
+        df = make_df([0] * 10)
+        buildings = [Building("Test", roof_area_m2=100)]
+        survival = emergency_summary(df, buildings, 2000, 4)
+        normal = emergency_summary(df, buildings, 2000, 4, usage_level="normal_usage")
+        assert normal["days_tank_empty"] > survival["days_tank_empty"]
 
 
 # --- find_dry_spells ---

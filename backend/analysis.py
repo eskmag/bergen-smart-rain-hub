@@ -228,7 +228,9 @@ def storage_simulation(df, buildings, tank_capacity_liters, population,
 
     for _, day in df.iterrows():
         inflow = water_collected(day["precipitation_mm"], total_roof_area, collection_efficiency)
-        tank_level = min(tank_level + inflow, tank_capacity_liters)  # cap at tank size
+        filled = min(tank_level + inflow, tank_capacity_liters)      # cap at tank size
+        stored = filled - tank_level                                 # the rest overflows
+        tank_level = filled
         tank_level = max(tank_level - daily_consumption, 0)          # drain but not below 0
 
         available = max(0, tank_level - reserve)
@@ -236,6 +238,7 @@ def storage_simulation(df, buildings, tank_capacity_liters, population,
             "date": day["date"],
             "precipitation_mm": day["precipitation_mm"],
             "inflow_liters": inflow,
+            "stored_liters": stored,
             "consumption_liters": daily_consumption,
             "tank_level_liters": tank_level,
             "tank_pct": (tank_level / tank_capacity_liters * 100) if tank_capacity_liters > 0 else 0,
@@ -268,16 +271,23 @@ def find_dry_spells(df, min_days=3):
 
 
 def emergency_summary(df, buildings, tank_capacity_liters, population,
-                      collection_efficiency=DEFAULT_COLLECTION_EFFICIENCY):
-    """Complete emergency preparedness assessment."""
+                      collection_efficiency=DEFAULT_COLLECTION_EFFICIENCY,
+                      usage_level="survival_total"):
+    """Complete emergency preparedness assessment.
+
+    `stored_liters` is the roof yield that actually fit in the tank;
+    `overflow_liters` is the rest. Tank-based figures (stored, days empty,
+    min level) follow `usage_level`.
+    """
     collection = daily_collection(df, buildings, collection_efficiency)
     total_collected = collection["liters"].sum()
     total_roof_area = sum(b.roof_area_m2 for b in buildings)
 
     sim = storage_simulation(
         df, buildings, tank_capacity_liters, population,
-        "survival_total", collection_efficiency
+        usage_level, collection_efficiency
     )
+    stored = float(sim["stored_liters"].sum())
 
     dry_spells = find_dry_spells(df)
     longest_dry = int(dry_spells["days"].max()) if not dry_spells.empty else 0
@@ -289,6 +299,8 @@ def emergency_summary(df, buildings, tank_capacity_liters, population,
     return {
         "total_collected_liters": total_collected,
         "total_collected_m3": total_collected / 1000,
+        "stored_liters": stored,
+        "overflow_liters": max(0.0, total_collected - stored),
         "annual_per_person_liters": total_collected / population if population > 0 else 0,
         "days_of_survival_supply": emergency_supply_days(total_collected, population, "survival_total"),
         "days_of_normal_supply": emergency_supply_days(total_collected, population, "normal_usage"),
