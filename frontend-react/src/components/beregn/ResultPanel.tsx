@@ -9,9 +9,15 @@ import { EnergyCard } from '../shared/EnergyCard'
 import { YearlyOutcomes } from '../shared/YearlyOutcomes'
 import Kjelder from '../shared/Kjelder'
 import { BUILDING_OPTIONS } from './buildingTypes'
+import { tankForDays } from '../../lib/rainwater'
 
 function fmt(n: number, decimals = 0) {
   return n.toLocaleString('nb-NO', { maximumFractionDigits: decimals })
+}
+
+// Yearly volumes are estimates — show them to the nearest 100 L
+function fmtVolume(liters: number) {
+  return fmt(Math.round(liters / 100) * 100)
 }
 
 function verdictFor(daysTankEmpty: number) {
@@ -67,9 +73,9 @@ export default function ResultPanel() {
 
   // How long a full tank lasts with no rain at all — the concrete beredskap answer.
   const tankDays = dailyNeed > 0 ? Math.floor(tankLiters / dailyNeed) : 0
-  // Rounded exactly like the «30 dager» tank preset in InputPanel, so picking
-  // that preset makes the recommendation go away.
-  const recommendedLiters = Math.min(100000, Math.max(500, Math.round((dailyNeed * recDays) / 500) * 500))
+  // Same size the «30 dager» preset (and the default tank) uses, so the
+  // recommendation only shows when a smaller tank was picked by hand.
+  const recommendedLiters = tankForDays(dailyNeed, recDays)
 
   const summary = simResult?.summary ?? {}
   const totalLiters   = (summary['total_collected_liters'] ?? 0) as number
@@ -95,6 +101,11 @@ export default function ResultPanel() {
           <div className="k-rh-badge">
             <div className="k-rh-badge-dot" style={{ background: verdict.dot }} />
             {verdict.text}
+          </div>
+        )}
+        {!loading && (
+          <div className="k-rh-collect">
+            Taket kan fange <strong>{fmtVolume(totalLiters)} liter</strong> i året.
           </div>
         )}
       </div>
@@ -126,12 +137,6 @@ export default function ResultPanel() {
       <details className="k-details">
         <summary>Flere detaljer</summary>
         <div className="k-details-body">
-          {!loading && (
-            <p className="k-details-line">
-              Taket samler om lag <strong>{fmt(totalLiters)} liter</strong> regnvann i året.
-            </p>
-          )}
-
           {costs && (
             <div className="k-cost-line">
               <div className="k-cl-label">Anslått kostnad</div>

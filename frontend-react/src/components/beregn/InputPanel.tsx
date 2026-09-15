@@ -4,6 +4,7 @@ import { api } from '../../api/client'
 import { useBeredskap } from '../../context/BeredskapsContext'
 import { BUILDING_OPTIONS } from './buildingTypes'
 import RoofMapModal from './RoofMapModal'
+import { TANK_MIN, tankForDays, tankSliderMax } from '../../lib/rainwater'
 import type { Feature, Polygon } from 'geojson'
 
 function fmt(n: number) {
@@ -18,10 +19,6 @@ function stepFor(v: number) {
   return 25
 }
 
-// Slider bounds — pure UI constraints, not domain values
-const TANK_MIN = 500
-const TANK_MAX = 100000
-
 // Labels for the tank tiers served by /api/config (defaults.tank_recommendation_days)
 const TANK_PRESET_LABELS = ['1 uke', '30 dager', '2 mnd']
 
@@ -29,10 +26,6 @@ const ROOF_SOURCES = [
   { key: 'preset', label: 'Bygningstype' },
   { key: 'map', label: 'Kart' },
 ] as const
-
-function clampTank(v: number) {
-  return Math.min(TANK_MAX, Math.max(TANK_MIN, Math.round(v / 500) * 500))
-}
 
 export default function InputPanel() {
   const {
@@ -84,8 +77,9 @@ export default function InputPanel() {
     days,
   }))
 
-  const tankPct = ((tankLiters - TANK_MIN) / (TANK_MAX - TANK_MIN)) * 100
-  const activePreset = tankPresets.find(p => clampTank(dailyNeed * p.days) === tankLiters)
+  const tankMax = tankSliderMax(dailyNeed, Math.max(0, ...tankPresets.map(p => p.days)))
+  const tankPct = ((tankLiters - TANK_MIN) / (tankMax - TANK_MIN)) * 100
+  const activePreset = tankPresets.find(p => tankForDays(dailyNeed, p.days) === tankLiters)
 
   return (
     <div className="k-input-panel">
@@ -166,8 +160,8 @@ export default function InputPanel() {
           aria-label="Tankstørrelse i liter"
           type="range"
           min={TANK_MIN}
-          max={TANK_MAX}
-          step={500}
+          max={tankMax}
+          step={100}
           value={tankLiters}
           onChange={e => setTankLiters(Number(e.target.value))}
           style={{ background: `linear-gradient(to right, var(--k-blue) ${tankPct}%, var(--k-surface) ${tankPct}%)` }}
@@ -177,7 +171,7 @@ export default function InputPanel() {
             <button
               key={p.label}
               className={`k-tank-preset${activePreset?.label === p.label ? ' active' : ''}`}
-              onClick={() => setTankLiters(clampTank(dailyNeed * p.days))}
+              onClick={() => setTankLiters(tankForDays(dailyNeed, p.days))}
             >
               {p.label}{activePreset?.label === p.label ? ' ✓' : ''}
             </button>

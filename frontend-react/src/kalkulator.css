@@ -474,6 +474,16 @@
 }
 .k-rh-badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #6EE7B7; }
 
+/* Annual roof yield — bottom line of the hero */
+.k-rh-collect {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  font-size: 15px;
+  color: rgba(255,255,255,0.75);
+}
+.k-rh-collect strong { color: white; font-weight: 500; }
+
 /* Simple cost line */
 .k-cost-line {
   background: var(--k-white);
@@ -534,8 +544,6 @@
   gap: 1rem;
   padding-bottom: 1.25rem;
 }
-.k-details-line { margin: 0; font-size: 14px; color: var(--k-ink); }
-.k-details-line strong { font-weight: 500; }
 
 .k-chart-card {
   background: var(--k-white);
